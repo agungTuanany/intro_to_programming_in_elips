@@ -520,7 +520,7 @@ Above list is same as this:
 
 - The value produced by evaluating this expression is "~abcdef~".
 
-  A function such as ~substring~ uses both a string and numbers as
+- A function such as ~substring~ uses both a string and numbers as
   arguments.  The function returns a part of the string, a
   /=substring=/ of the first argument.  This function takes three
   arguments.  It first argument is the string of characters, the
@@ -1272,3 +1272,672 @@ the size of a buffer and the location of point within it.
 
 - Likewise, the function ~point-max~ returns the value of the maximum
   permissible value of point in the current buffer.
+
+
+* How To Write Function Definition
+
+- When the Lisp interpreter evaluates a list, it looks to see whether
+  the first symbol on the list has a function definition attached to
+  it; or, put another way, whether the symbol points to a function
+  definition.  If it does, the computer carries out the instruction in
+  the definition.  A symbol that has a function definition is called,
+  simply, a function (although, properly speaking, the definition is
+  the function and the symbol refers to it).
+
+  - [[An Aside about Primitive Function][Primitive Function]]
+
+  - [[~defun~ Makro][~defun~]] The ~defun~ macro.
+
+  - [[Install A Function Definition][install]] Install a function definition.
+
+  - [[Make a Function Interactive][Interactive]] Making a function interactive.
+
+  - [[Different Options for interactive][Interactive Options]] Different options for ~interactive~.
+
+  - [[Install Code Permanently][Permanent Installation]] Installing code permanently.
+
+  - [[let][let]] Creating and initializing local variables.
+
+  - [[The ~if~ Special Form][if]] What if?
+
+  - [[else][else]] if-then-else expression.
+
+  - [[Truth & Falsehood][Truth & Falsehood]] What Lisp considered false and true.
+
+  - [[save-excursion][save-excursion]] Keeping track of point and buffer.
+
+  - [[Review][Review]]
+
+** An Aside about Primitive Function
+
+- /All function are defined in terms of other functions/,*except* for
+  a few */primitive/* functions that are written in the C programming
+  language.
+
+- When you write functions' definitions, you will write them in Emacs
+  Lisp and use other functions as your building blocks.  Some of the
+  function you will use will themselves be written in Emacs Lisp
+  (perhaps by you) and some will be primitives written in C.
+
+- When you write code in Emacs Lisp, you d not distinguish between the
+  use of function written in C and the use of functions written in
+  Emacs Lisp.  The difference is irrelevant.  I mention the
+  distinction only because it is interesting to know.  Indeed, unless
+  you investigate, you won't know whether an already-written function
+  is written in Emacs Lisp or C.
+
+** ~defun~ Makro
+
+- In Lisp, a symbol such as ~mark-whole-buffer~ has code attached to
+  it that tells the computer what to do when the function is called.
+  This code is called the /function definition/ and is created by
+  evaluating a Lisp expression that start with the symbol /defun/
+  (which abbreviation for /define function/).
+
+  In Subsequent sections, we will look at function definitions from
+  the Emacs source code, such as ~mark-whole-buffer~.  In this
+  section, we will describe a simple function definition so you can
+  see how it looks.
+
+  This function definition uses arithmetic because it makes for a
+  simple example.  Some people dislike example using arithmetic;
+  however, if you are such a person, do not despair.  Hardly any of
+  the code we will study in the remainder of this introduction
+  involves arithmetic or mathematics.  The examples mostly involve
+  text in one way or another.
+
+- A function definition has up to *five* parts following the word ~defun~:
+
+  - The name of the symbol to which the function definition should be attached
+
+  - A list of the /arguments/ that will be passed to the function.  If
+    no arguments will be passed to the function, this is an empty list
+    ~()~
+
+  - Documentation describing the function. (Technically optional, but
+    strongly recommended).
+
+  - Optionally, an expression to make the function *interactive* so
+    you can use it by typing ~M-x~ and then the name of the function;
+    or by typing an appropriate key or key chord.
+
+  - The code that instruct the computer what to do; the /body/ of the
+    function definition.
+
+- It is helpful to think of the /five parts/ of a function definition
+  as being organized in a template, with slots for each part:
+
+  #+begin_src emacs-lisp
+    (defun function-name (arguments...)
+      "optional-documentaion.."
+      (interactive argument-passing-info)      ; optional
+      body..)
+  #+end_src
+
+- As an example, here is the code for a function that multiplies its
+  arguments by 7. (This example is *not interactive*)
+
+  #+begin_src emacs-lisp
+    (defun multiply-by-seven (number)
+      "Multiply NUMBER by seven."
+      (* 7 number))
+  #+end_src
+
+  - The definition begin with a parenthesis and the symbol ~defun~,
+    followed by the name of the function.
+
+  - The name of the function is followed by a list that contains the
+    arguments that will be passed to the function.  This list is
+    called the /argument list/.  In this example, the list has only
+    one element, the symbol, ~number~.  When the function is used, the
+    symbol will be bound to the value that is used as argument to the
+    function.
+
+  - The argument list is followed by the documentation string that
+    describes the function.  This is what you see when you type ~C-h
+    f~ and the name of a function.  Incidentally, when you write a
+    documentation string like this, you should make the first line a
+    complete sentence since some commands, such /apropos/, print only
+    the first line of a multi-line documentation string.  Also, you
+    should not indent the second line of a documentation string, if
+    you have one, because that looks odd when you use ~C-h f
+    (describe-function)~.
+
+  - The documentation string is optional, but it is so useful, it
+    should be included in almost every function you write.
+
+  - The third line of the example consist of the body of the function
+    definition.  In this function, the body is the list, ~(* 7
+    number)~, which says to multiply the value of /number/ by 7.
+
+- When you use the ~multiply-by-seven~ function, the argument ~number~
+  evaluates to the actual number you want used.  Here is an example
+  that shows ~multiply-by-seven~ is used; but don't try to evaluate
+  this yet!!.
+
+  #+begin_src emacs-lisp
+    (multiply-by-seven 3)
+  #+end_src
+
+  - The symbol ~number~, specified in the function in the next
+    section, is bound to the value 3 in the actual use of the
+    function.
+
+  - Note that although ~number~ was inside parentheses in the function
+    definition, the argument passed to the ~multiply-by-seven~ is not
+    parentheses.  The parentheses are written in the function
+    definition so the computer can figure out where argument list ends
+    and the rest of the function definition begins.
+
+- If you evaluate this example, you are likely to get an error
+  message.  This is because we have written the function definition,
+  but not yet told the computer about the definition--we have *not yet
+  loaded the function definition in Emacs*.  Installing a function is
+  the process that tells the Lisp interpreter the definition of the
+  function.
+
+** Install A Function Definition
+
+- If you are reading this inside Info in Emacs, you can try out the
+  ~multiply-by-seven~ function by first evaluating the function
+  definition and then evaluating ~(multiply-by-seven 3)~.  A copy of
+  the function definition follows.
+
+- Place the cursor after the last parenthesis of the function
+  definition and type ~C-x C-e~.  When you do this,
+  ~multiply-by-seven~ will appear in the echo area.  (What this means
+  is that when a function definition is evaluated, the value it
+  returns is the name of the defined function).  At the same time,
+  this action installs the function definition.
+
+  #+begin_src emacs-lisp
+    (defun multiply-by-seven (number)
+      "Multiply NUMBER by seven."
+      (* 7 number))
+  #+end_src
+
+- By evaluating this ~defun~, you have just *installed*
+  ~multiply-by-seven~ in Emacs.  The function is now just as much as
+  part of Emacs as ~forward-word~ or any other editing function you
+  use.
+
+- ~multiply-by-seven~ will stay installed until you quit Emacs.  To
+  reload code automatically whenever you start Emacs, see Installing
+  Code Permanently.
+
+  -- [[The effect of installation][Effect of installation]]
+
+  -- [[Change a Function Definition][Change a defun]]             How to change a function definition
+
+*** The effect of installation
+
+- You can see the effect of installing ~multiply-by-seven~ by evaluating
+  the following sample.  Place the cursor after the following expression
+  and the ~C-x C-e~.  The number 21 will appear in the echo area.
+
+  #+begin_src emacs-lisp
+    (multiply-by-seven 3)
+  #+end_src
+
+- If you wish, you can read the documentation for the function by
+  typing ~C-h f (describe-function)~ and then the name of the
+  function, ~multiply-by-seven~.  When you do this, a ~*Help*~ window
+  will appear on your screen that says
+
+  #+begin_src emacs-lisp
+  multiply-by-seven is a Lisp function.
+
+  (multiply-by-seven NUMBER)
+
+  Multiply NUMBER by seven.
+  #+end_src
+
+*** Change a Function Definition
+
+- If you want to change the code in ~multiply-by-seven~, just rewrite
+  it.  To install the new version in place of the old one, evaluate
+  the function definition again.  This is how you modify code in
+  Emacs.  It is very simple.
+
+- As an example, you can change the ~multiply-by-seven~ function to
+  add the number to itself seven times instead of multiplying the
+  number by seven.  It produces the same answer, but by a different
+  path.  At the same time, we will add comment to the code; a comment
+  is text that Lisp interpreter ignores, but that a human reader may
+  find useful or enlightening.
+
+- The comment is that this is the second version.
+
+  #+begin_src emacs-lisp
+    (defun multiply-by-seven (number)         ; Second version
+      "Multiply NUMBER by seven."
+      (+ number number number number number number number))
+  #+end_src
+
+- The comment follows a semicolon '~;~'.  In Lisp, everything on a
+  line that follows a semicolon is a comment.  The end of the line is
+  the end of the comment.  To stretch a comment or two or more lines,
+  begin each lines with a semicolon.
+
+- See Beginning a .emacs File, and Comments in The GNU Emacs Lisp
+  Reference Manual, for more about comments.
+
+- You can install the version of the ~multiply-by-seven~ function by
+  evaluating it in the same way you evaluated the first function:
+  place the cursor after the last parenthesis and type ~C-x C-e~.
+
+- In summary, this is how you write code in Emacs Lisp: you write a
+  function; install it; test it; and then make fixes or enhancements
+  and install it again.
+
+** Make a Function Interactive
+
+- You make a function interactive by placing a list that begins with the
+  special form ~interactive~ immediately after the documentation.  A
+  user can invoke an interactive function by typing ~M-x~ and then the
+  name of the function; or by typing the keys to which it is bound;
+  for example, by typing ~C-n~ for ~next-line~ or ~C-x h~ for
+  ~mark-whole-buffer~.
+
+- Interestingly, when you call an interactive function interactively,
+  the value returned is not automatically displayed in the echo area.
+  This is because you often call an interactive function for its side
+  effects, such as moving forward by a word or line, and /not for the
+  value returned/.  If the returned value were displayed in the echo
+  area each time you typed a key, it would be very distracting.
+
+
+  -- [[An Interactive multiply-by-seven, An Overview][ An Interactive multiply-by-seven]]       An overview
+
+  -- [[An Interactive ~multiply-by-seven~][multiply-by-seven in detail]]             The interactive version
+
+*** An Interactive multiply-by-seven, An Overview
+
+- Both the use of the special form ~interactive~ and one way to display
+  a value in the echo area can be illustrated by creating an interactive
+  version of ~multiply-by-seven~.
+
+  #+begin_src emacs-lisp
+    (defun multiply-by-seven (number)           ; Interactive version
+      "Multiply NUMBER by seven."
+      (interactive "p")
+      (message "the result is %d" (* 7 number)))
+  #+end_src
+
+- You can install this code by placing your cursor after it and typing
+  ~C-x C-e~. The name of the function will appear in your echo area.
+  Then, you can use this code by typing ~C-u~ and a number and then
+  typing ~M-x multiply-by-seven~ and pressing ~RET~.  The phrase '~The
+  result is ...~' followed by the product will appear in the echo
+  area.
+
+- Speaking more generally, you invoke a function like this in either
+  of two ways:
+
+  1. By typing a prefix argument that contains the number to be
+     passed, and then typing ~M-x~ and the name of the function, as
+     which "~C-u 3 M-x forward-sentence~"; or,
+
+  2. By typing whatever key or key chord the function is bound to,
+     with ~C-u 3 M-e~.
+
+  - Both the examples just mentioned work identically to move point
+    forward three sentences. (Since ~multiply-by-seven~ is not bound
+    to any key, it could not be used as an example of key binding.).
+
+- A /prefix argument/ is passed to an interactive function by typing
+  the ~META~ key followed by a number, for example, ~M-3 M-e~, or by
+  typing ~C-u~ and then a number, for example, ~C-u 3 M-e~ (if you
+  type ~C-u~ without a number, it defaults to 4).
+
+*** An Interactive ~multiply-by-seven~
+
+- Let's look at the use of the special from ~interactive~ and then at
+  the function ~message~ in the interactive version of
+  ~multiply-by-seven~.  You will recall that the function definition looks like this:
+
+  #+begin_src emacs-lisp
+    (defun multiply-by-seven (number)           ; Interactive version
+      "Multiply NUMBER by seven."
+      (interactive "p")
+      (message "The result is %d" (* 7 number)))
+  #+end_src
+
+- In this function, the expression, ~(interactive "p")~, is a list of
+  two elements.  The ~"p"~ tells Emacs to pass the prefix argument to
+  the function and use its value for the argument of the function.
+
+- The argument will be a number.  This means that the symbol ~number~
+  will be bound to a number in the line:
+
+  #+begin_src emacs-lisp
+    (message "The result is %d" (* 7 number))
+  #+end_src
+
+- For example, if you prefix argument is 5, the Lisp interpreter will
+  evaluate the line as if it were:
+
+  #+begin_src emacs-lisp
+    (message "The result is %d" (* 7 5))
+  #+end_src
+
+- (If you are reading this in GNU Emacs, you can evaluate this
+  expression yourself). First, the interpreter will evaluate the inner
+  list, which ~(* 7 5)~.  This returns a value of 35.  Next, it will
+  evaluate the outer list, passing the values of the second and
+  subsequent elements of the list to the function ~message~.
+
+- As we have seen, ~message~ in Emacs Lisp function especially
+  designed for sending a one line message to a user.  In summary, the
+  ~message~ function prints its first argument in the echo area as is,
+  except for occurrences of '~%d~' and '~%s~' (and various other
+  %-sequences which we have not mentioned).  When it sees a control
+  sequence, the function looks to the second or subsequent arguments
+  and prints the value of the argument in the location in the string
+  where the control sequence is located.
+
+- In the interactive ~multiply-by-seven~ function, the control string
+  is '~%d~', which requires a number, and the value returned by
+  evaluating ~(* 7 5)~ is the number 35.  Consequently, the number 35
+  is printed in place of the '~%d~' and the message is '~The result is
+  35~'.
+
+- Note that when you call the function ~multiply-by-seven~, the
+  message is printed without quotes, but when you call ~message~, the
+  text is printed in double quotes.  This is because the value
+  returned by ~message~ is what appears in the echo area when you
+  evaluate an expression whose first element is ~message~; but when
+  you embedded in a function, ~message~ prints the text as a /side
+  effect/ without quotes.
+
+** Different  Options for interactive
+
+- In the example, ~multiply-by-seven~ used ~"p"~ as the argument to
+  ~interactive~.  This argument told Emacs to interpret your typing
+  either ~C-u~ followed by number or ~META~ followed by a number as a
+  command to pass that number to the function argument.  Emacs has more
+  that twenty characters predefined for use with ~interactive~.  In
+  almost case, one of these options will enable you to pass the right
+  information interactively to a function.  (See Code Characters for
+  ~interactive~) in the GNU Emacs Lisp Reference Manual.)
+
+- Consider the function ~zap-to-char~. Its interactive expression is
+
+  #+begin_src emacs-lisp
+    (interactive "p/ncZap to char: ")
+  #+end_src
+
+  - The first part of the argument to ~interactive~ is '~p~', with
+    which you are already familiar.  This argument tells Emacs to
+    interpret a prefix, as a number to be passed to a the function.
+    You can specify a prefix either by typing ~C-u~ followed by a
+    number or by typing ~META~ followed by a number.
+
+  - The prefix is the number of specified characters.  Thus, if your
+    prefix is three and the specified character is '~x~', then you
+    will delete all the text up to and including the third next '~x~'.
+    If you do not set a prefix, then you delete all the text up to an
+    including the specified character, but no more.
+
+  - The '~c~' tells the function the name of the character to which to
+    delete.
+
+  - More formally, a function with two or more arguments can have
+    information passed to each argument by adding parts to the string
+    that follows ~interactive~.  When you do this, the information is
+    passed to each arguments in the same order it is specified in the
+    ~interactive~ list.  In the string, each part is separated from
+    the next part by a '~\n~', which is a newline.  For example, you
+    can follow '~p~' with a '~/n~' and an '~cZap to char: ~'. This
+    causes Emacs to pass the value of the prefix argument (if there is
+    one) and the character.
+
+  - In this case, the function definition looks like the following,
+    where ~arg~ and ~char~ are the symbol to which ~interactive~ binds
+    the prefix argument and the specified character:
+
+    #+begin_src emacs-lisp
+      (defun name-of-function (arg char)
+        "Documentation..."
+        (interactive "p/ncZap to char: ")
+        body-of-function...)
+    #+end_src
+
+  - (The space after the colon in the prompt makes it look better when
+    you are prompted. See The Definition of ~copy-to-buffer~, for an
+    example)
+
+  - When a function does not take arguments, ~interactive~ does not
+    require any.  Such a function contains the simple expression
+    ~(interactive)~.  The ~mark-whole-buffer~ function is like this.
+
+  - Alternatively, if the special letter-codes are not right for your
+    application, you can pass your own arguments to ~interactive~ as a list.
+
+  - See The Definition of ~append-to-buffer~, for an example.  See
+    Using Interactive in The GNU Emacs Lisp Reference Manual, for a
+    more explanation about this technique.
+
+** Install Code Permanently
+
+- When you install a function definition by evaluating it, it will
+  stay installed until you quit Emacs.  The next time you start a new
+  session of Emacs, the function will not be installed unless you
+  evaluate the function definition again.
+
+- At some point, you may want to have code installed automatically
+  whenever you start a new session of Emacs.  There are several ways
+  of doing this:
+
+  * If you have code that is just for yourself, you can put the code
+    for the function definition in your ~.emacs~ initialization file.
+    When you start Emacs, your ~.emacs~ file is automatically
+    evaluated and all the function definition within it are
+    installed. See Your ~.emacs~ File.
+
+  * Alternatively, you can put the function definitions that you want
+    installed in one or more files of their own and use the ~load~
+    function to cause Emacs to evaluate and thereby install each of
+    the function in this files.  See Loading Files.
+
+  * Thirdly, if you have code that your whole site will use, it is
+    usual to put it in a file called ~site-init.el~ that is loaded
+    when Emacs is built.  This makes the code available to everyone
+    who use your machine.  (See the ~INSTALL~ file that is part of the
+    Emacs distribution.)
+
+- Finally, if you have a code that everyone who use Emacs may want,
+  you can post it on a computer network or send a copy to Free
+  Software Foundation.  (When you do this, please license the code and
+  its documentation under a license that permit other people to run,
+  copy, study, modify, and redistribute the code and which protects
+  you from having your work taken from you.)
+
+- If you send a copy of your code to the Free Software Foundation, and
+  properly protect yourself and others, it may be included in the next
+  release of Emacs. In large part, this is how Emacs has grown over
+  the past years, by donations.
+
+** let
+
+- The ~let~ expression is a special form in Lisp that you will need to
+  use in most function definitions.
+
+- ~let~ is used to attach or bind a symbol to a value in such a way
+  the Lisp interpreter will not confuse the variable with a variable
+  of the same name that is not part of the function.
+
+- To understand why the ~let~ special form is necessary, consider the
+  situation in which you own a home that you generally refer to as
+  "the house", as in the sentence, "The house needs painting."  If you
+  are visiting a friend and your host refer to "the house", he is
+  likely to be referring to /his/ house, not yours, that is, to a
+  different house.
+
+- If your friend is referring to his house and you think he is
+  referring to your house, you may be in for some confusion.  The same
+  thing could happen in Lisp if a variable that is used inside of one
+  function has the same name as a variable that is used of another
+  function, and the two are not intended to refer to the same value.
+  The ~let~ special form prevents this kind of confusion.
+
+  -- [[~let~ Prevent confusion][Prevent confusion]]
+
+  -- [[The Parts of a ~let~ Expression][Parts of let Expression]]
+
+  -- [[Sample ~let~ Expression][Sample let Expression]]
+
+  -- [[Uninitialized Variables in a ~let~ Statement][Initialized let Variables]]
+
+*** ~let~ Prevent confusion
+
+- The ~let~ special form prevent confusion. ~let~ creates a name for a
+  /local variable/ that overshadows any use of the same name outside
+  the ~let~ expression.  This is like understanding that whenever your
+  host refers to "the house", he means his house, not yours.  (Symbol
+  used in argument list work the same way. See The ~defun~ Macro).
+
+- Local variables created by ~let~ expression retain their value
+  /only/ within the ~let~ expression itself (and within expression
+  called within the ~let~ expression); the local variables have no
+  effect outside the ~let~ expression.
+
+- Another way to think about ~let~ is that it is like a ~setq~ that is
+  temporary and local.  The value set by ~let~ are automatically
+  undone when the ~let~ is finished.  The setting only affects
+  expressions that are inside the bounds of the ~let~ expression.
+
+- In computer jargon, we would say the binding of a symbol is visible
+  only in functions called in the ~let~ form; in Emacs Lisp, the
+  default scoping is dynamic, not lexical. (The non-default lexical
+  binding is not discussed in this manual.)
+
+- ~let~ can create more than one variable at once.  Also, ~let~ gives
+  each variable it creates an initial value, either a value specified
+  by you, or ~nil~.  (In the jargon, this is binding the variable to
+  the value.).
+
+- After ~let~ has created and bound the variables, it /executes/ the
+  code in the body of the ~let~, and returns the value of the last
+  expression in the body, as the value of the whole ~let~ expression.
+
+- "Execute", is a jargon term that means to evaluate a list; it comes
+  from the use of the word meaning "to give practical effect to"
+  (Oxford English Dictionary).  Since you evaluate an expression to
+  perform an action, "execute" has evolved as a synonym to "evaluate".
+
+*** The Parts of a ~let~ Expression
+
+- A ~let~ expression is list of *three parts*.
+
+  - The first part is the symbol ~let~,
+
+  - The second part is a list, called a /varlist/, each element of
+    which is either a symbol by itself or two-element list, the first
+    element of which is a symbol.
+
+  - The third part is the body of the ~let~.  The body usually
+    consists of one or more lists.
+
+- A template for a ~let~ expression looks like this:
+
+  #+begin_src emacs-lisp
+    (let varlist body...)
+  #+end_src
+
+- If the varlist is composed of two-element lists, as is often the
+  case, the template for the ~let~ expression looks like this:
+
+  #+begin_src emacs-lisp
+    (let ((varlist value)
+          (varlist value)
+          ..)
+      body...)
+  #+end_src
+
+*** Sample ~let~ Expression
+
+- The following expression creates and gives initial value to the two
+  variables ~zebra~ and ~tiger~.  The body of the ~let~ expression is
+  a list which calls the ~message~ function.
+
+  #+begin_src emacs-lisp
+    (let ((zebra "stripes")
+          (tiger "fierce"))
+      (message "One kind of animal has %s and another is %s."
+               zebra tiger))
+  #+end_src
+
+- Here, the varlist is ~(zebra "stripes") (tiger "fierce"))~.
+
+- The two variables are ~zebra~ and ~tiger~.  Each variable is the
+  first element of a two-element list and each value is the second
+  element of its two-element list.
+
+- In the varlist, Emacs binds the variable ~zebra~ to the value
+  "~stripes~", and binds the variable ~tiger~ to the value "~fierce~".
+  In this example, both values are strings.  The value could just as
+  well have been another list or a symbol.
+
+- The body of the ~let~ follows after the list holding the variables.
+  In this example, the body is a list that uses the ~message~ function
+  to print a string in the echo area.
+
+- You many evaluate the example in the usual way, by placing the
+  cursor after the last parenthesis and typing ~C-x C-e~.  When you do
+  this, the following will appear in the echo area:
+
+  #+begin_src emacs-lisp
+    "One kind of animal has stripes and another is fierce"
+  #+end_src
+
+- As we have seen before, the ~message~ function prints its first
+  argument, except for '~%s~'.  In this example, the value of the
+  variable ~zebra~ is printed at the location of the first '~%s~' and
+  the value of the variable ~tiger~ is printed at the location of the
+  second '~%s~'.
+
+*** Uninitialized Variables in a ~let~ Statement
+
+- If you do not bind the variables in a ~let~ statement to specific
+  initial values, they will automatically be bound to an initial value
+  of ~nil~, as the following expression:
+
+  #+begin_src emacs-lisp
+    (let ((birch 3)
+          pine
+          fir
+          (oak 'some))
+      (message
+       "Here are %d variables with %s, %s, and %s value."  birch
+       pine fir oak))
+  #+end_src
+
+- Here, the varlist is ~(birch 3) pine fir (oak 'some))~.
+
+- If you evaluate this expression in the usual way, the following will
+  appear in your echo area:
+
+  #+begin_src emacs-lisp
+    "Here are 3 variabels with nil, nil, and some value."
+  #+end_src
+
+- In this example, Emacs binds the symbol ~birch~ to the number 3,
+  binds the symbol ~pine~ and ~fir~ to ~nil~, and binds the symbol
+  ~oak~ to the value ~some~.
+
+- Note that in the first part of the ~let~, the variables ~pine~ and
+  ~fir~ stand alone as atoms that are not surrounded by parentheses;
+  this is because they are being bound to ~nil~, the empty list.  But
+  ~oak~ is bound to ~some~ and so is a part of the list ~(oak 'some)~.
+  Similarly, ~birch is bound to the number 3 and so is in a list with
+  that number.  (Since a number evaluates to itself, the number does
+  not need to be quoted.  Also, the number is printed in the message
+  using a '~%d~' rather than a '~%s~'.) The four variables as a group
+  into a list to delimit them from the body of the ~let~.
+
+** The ~if~ Special Form
+** else
+** Truth & Falsehood
+** save-excursion
+** Review
