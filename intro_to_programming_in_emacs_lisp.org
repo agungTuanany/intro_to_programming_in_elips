@@ -491,12 +491,12 @@ Above list is same as this:
 
 - If you evaluate this expression, the number 4 will appear in your
   echo area.  What the Lisp interpreter does is add the numbers that
-  follows the =+=.
+  follows the ~+~.
 
 - The word "argument" comes from the way it used in mathematics and
   does not refer to a disputation between two people; instead it
   refers to the information presented to the function, in this case,
-  to the =+=.
+  to the ~+~.
 
 - In Lisp, the arguments to a function are the atoms or list that
   follow the function.  The value returned by the evaluation (process)
@@ -505,15 +505,15 @@ Above list is same as this:
 - Different functions requires different numbers of arguments, some
   function require none at all.
 
-  - [[Argument's Data Types][Argument's Data Types]]                               Types data passed to a function
+  - [[Argument's Data Types][Argument's Data Types]]          Types data passed to a function
 
-  - [[An Argument as the Value of a Variable or List][An Argument as the Value of a Variable or List]]      An Arguments can be the value of a variable or list
+  - [[An Argument as the Value of a Variable or List][Args as Variable or List]]       An Arguments can be the value of a variable or list
 
-  - [[Variable Number of Arguments][Variable Number of Arguments]]                        Some function may take a variable number of arguments
+  - [[Variable Number of Arguments][Variable Number of Arguments]]    Some function may take a variable number of arguments
 
-  - [[Wrong Type of Argument][Wrong Type of Argument]]                              Passing an argument of the wrong type of function
+  - [[Wrong Type of Argument][Wrong Type of Argument]]          Passing an argument of the wrong type of function
 
-  - [[The ~message~ Function][The ~message~ Function]]                     A useful function for sending messages
+  - [[The ~message~ Function][ message]]               A useful function for sending messages
 
 *** Argument's Data Types
 
