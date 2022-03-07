@@ -12,6 +12,16 @@
 #+LATEX_CLASS: org-plain-latex
 #+LATEX_CLASS_OPTIONS: [letterpaper]
 #+SETUPFILE: ./latex-standard-export.org
+
+#+begin_comment
+#+LATEX_CLASS: article
+
+#+SETUPFILE: ~/.emacs.d/modules/prelude-latex.el
+#+LATEX_HEADER: \input{latex-standard-setup.tex}
+;;;
+#+LATEX_HEADER: \input{jake-latex-standard.setup}
+#+end_comment
+
 #+STARTUP: latexpreview
 
 + Created: 2022-02-19
@@ -496,9 +506,13 @@ Above list is same as this:
   function require none at all.
 
   - [[Argument's Data Types][Argument's Data Types]]                               Types data passed to a function
+
   - [[An Argument as the Value of a Variable or List][An Argument as the Value of a Variable or List]]      An Arguments can be the value of a variable or list
+
   - [[Variable Number of Arguments][Variable Number of Arguments]]                        Some function may take a variable number of arguments
+
   - [[Wrong Type of Argument][Wrong Type of Argument]]                              Passing an argument of the wrong type of function
+
   - [[The ~message~ Function][The ~message~ Function]]                     A useful function for sending messages
 
 *** Argument's Data Types
@@ -1286,25 +1300,25 @@ the size of a buffer and the location of point within it.
 
   - [[An Aside about Primitive Function][Primitive Function]]
 
-  - [[~defun~ Makro][~defun~]] The ~defun~ macro.
+  - [[~defun~ Makro][~defun~]]                     The ~defun~ macro.
 
-  - [[Install A Function Definition][install]] Install a function definition.
+  - [[Install A Function Definition][install]]                     Install a function definition.
 
-  - [[Make a Function Interactive][Interactive]] Making a function interactive.
+  - [[Make a Function Interactive][Interactive]]                 Making a function interactive.
 
-  - [[Different Options for interactive][Interactive Options]] Different options for ~interactive~.
+  - [[Different Options for interactive][Interactive Options]]         Different options for ~interactive~.
 
-  - [[Install Code Permanently][Permanent Installation]] Installing code permanently.
+  - [[Install Code Permanently][Permanent Installation]]      Installing code permanently.
 
-  - [[let][let]] Creating and initializing local variables.
+  - [[let][let]]                         Creating and initializing local variables.
 
-  - [[The ~if~ Special Form][if]] What if?
+  - [[The ~if~ Special Form][if]]                      What if?
 
-  - [[else][else]] if-then-else expression.
+  - [[If-then-else Expression][else]]                        if-then-else expression.
 
-  - [[Truth & Falsehood][Truth & Falsehood]] What Lisp considered false and true.
+  - [[Truth & Falsehood in Emacs Lisp][Truth & Falsehood]]           What Lisp considered false and true.
 
-  - [[save-excursion][save-excursion]] Keeping track of point and buffer.
+  - [[~save-excursion~][~save-excursion~]]            Keeping track of point and buffer.
 
   - [[Review][Review]]
 
@@ -1937,7 +1951,617 @@ the size of a buffer and the location of point within it.
   into a list to delimit them from the body of the ~let~.
 
 ** The ~if~ Special Form
-** else
-** Truth & Falsehood
-** save-excursion
+
+- Another special form is the condition ~if~.  This form is used to
+  instruct the computer to make decisions.  You can write function
+  definitions without using ~if~, but it is used often enough, and is
+  important enough, to be included here.  It is used, for example, in
+  the code for the function ~beginning-of-buffer~.
+
+- The basic idea behind and ~if~, is that /if/ a test is *true*,
+  /then/ an expression is *evaluated*.  If the test is *not true*, the
+  expression is *not evaluated*.  For example, you might make a
+  decision such as, "if it is warn and sunny, then go to the beach!"
+
+  - [[~if~ in more detail][~if~ in more detail]]
+
+  - [[The ~type-of-animal~ Function in Detail][~type-of-animal~ in detail]]     An example of an ~if~ expression.
+
+*** ~if~ in more detail
+
+- An ~if~ expression written in Lisp does not use the word "then"; the
+  test and the action are the second and third elements of the list
+  whose first element is ~if~.  Nonetheless, the test part of an ~if~
+  expression is often called the /if-part/ and the second argument is
+  often called the /then-part/.
+
+- Also, when an ~if~ expression is written, the true-or-false is
+  usually written on the same lines as the symbol ~if~, but the action
+  to carry out if the test is true, the then-part, is written on the
+  second and subsequent lines.  This makes the ~if~ expression is
+  easier to read.
+
+  #+begin_src emacs-lisp
+    (if true-or-false-test
+        action-to-carry-out-if-test-is-true)
+  #+end_src
+
+- The true-or-false test will be an expression that is evaluated by
+  the Lisp interpreter.
+
+- Here is an example that you can evaluate in the usual manner.  The
+  test is whether the number 5 is greater than the number 4.  Since it
+  is, the message "~5 is greater than 4!~' will be printed.
+
+  #+begin_src emacs-lisp
+    (if (> 5 4)                                 ; if-part
+        (message "5 is greater than 4!"))       ; then-part
+  #+end_src
+
+  - The function ~>~ test whether its first argument is greater than
+    its second argument and returns true if it is.
+
+- Of course, in actual use, the test in an ~if~ expression will not be
+  fixed for all time as it is by the expression ~(< 5 4)~.  Instead,
+  at least one of the variables used in the test will be bound to a
+  value that is not known ahead of time.  (If the value were known
+  ahead of time, we would not need to run the test!)
+
+- For example, the value may be bound to an argument of a function
+  definition.  In the following function definition, the character of
+  the animal is a value that is passed to the function. If the value
+  bound to ~characteristic~ is "~fierce~", then the message, '~it is a
+  tiger!~' will printed; otherwise, ~nil~ will be returned.
+
+  #+begin_src emacs-lisp
+    (defun type-of-animal (characteristic)
+      "Print message in echo area depending on CHARACTERISTIC.
+        If the CHARACTERISTIC is the string \"fierce\",
+    then warn of a tiger"
+      (if (equal characteristic "fierce")
+          (message "It is a tiger!")))
+  #+end_src
+
+- If you are reading this inside of GNU Emacs, you can evaluate the
+  function definition in the usual way to install it in Emacs, and
+  then you can evaluate the following two expression to see the
+  results:
+
+  #+begin_src emacs-lisp
+    (type-of-animal "fierce")
+
+    (type-of-animal "striped")
+  #+end_src
+
+- When you evaluate ~(type-of-animal "fierce")~, you will see the
+  following message printed in the echo area: ~"it is a tiger!"~; and
+  when you evalute ~(type-of-animal "stripe")~ you will see ~nil~
+  printed in the echo area.
+
+*** The ~type-of-animal~ Function in Detail
+
+- Let's looks at the ~type-of-animal~ function in detail.
+
+- The function definition for ~type-of-animal~ was written by filling
+  the slots of two templates, one for a function definition as a
+  whole, and a second for an ~if~ expression.
+
+- The template for every function that is not /interactive/ is:
+
+  #+begin_src emacs-lisp
+    (defun name-of-function (argument-list)
+      "documentation.."
+      body..)
+  #+end_src
+
+- The part of the function that match this templates look like this:
+
+  #+begin_src emacs-lisp
+    (defun type-of-animal (characteristic)
+      "Print message in echo area depending on CHARACTERISTIC.
+        If the CHARACTERISTIC is the string \"fierce\",
+    then warn of a tiger."
+      body: the if expression)
+  #+end_src
+
+- The name of function is ~type-of-animal~; it is passed the value of
+  one argument.  The argument list is followed by a multi-line
+  documentation string.  The documentation string is included in the
+  example because it is a good habit to write documentation string for
+  every function definition.  The body of the function definition
+  consists of the if~ expression.
+
+- The template for an ~if~ expression looks like this:
+
+  #+begin_src emacs-lisp
+    (if true-or-false-test
+        action-to-carry-out-if-the-test-returns-true)
+  #+end_src
+
+- In the ~type-of-animal~ function, the code for the ~if~ looks like this:
+
+  #+begin_src emacs-lisp
+    (if (equal characteristic  "fierce")
+        (message "It is a tiger!"))
+  #+end_src
+
+- Here, the true-or-false-test is the expression:
+
+  #+begin_src emacs-lisp
+    (equal characteristic "fierce")
+  #+end_src
+
+- In Lisp, ~equal~ is a function that determines whether its first
+  argument is equal to its second argument.  The second argument is
+  the string ~"fierce"~ and the first argument is the value of the
+  symbol ~characteristic~--in other words, the argument passed to this
+  function.
+
+- In the first exercise of ~type-of-animal~, the argument ~"fierce"~
+  is passed to ~type-of-animal~.  Since ~"fierce"~ is equal to
+  ~"fierce"~, the expression, ~(equal characteristic "fierce")~,
+  returns a value of /true/.  When this happens, the ~if~ evaluates
+  the second argument or then-part of the ~if~: ~(message "It is a
+  tiger!")~.
+
+- On the other hand, in the second exercise of the ~type-of-animal~,
+  the arguments ~"striped"~ is passed to
+  ~type-of-animal"~. ~"striped"~ is not equal to ~"fierce"~, so the
+  then-part is not evaluated and ~nil~ is returned by the ~if-
+  expression.
+
+** If-then-else Expression
+
+- An ~if~ expression may have an optional third argument, called the
+  /else-part/, for the case when the true-or-false-test returns false.
+  When this happens, the second argument or then-part of the overall
+  ~if~ expression is /not/ evaluated, but the third or else-part /is/
+  evaluated.  You might think of this as cloudy day alternative for
+  the decision "if it warn and sunny, then go to the beach, else read
+  a book!".
+
+- The word "else" is not written in the Lisp code; the else-part of an
+  ~if~ expression comes after the then-part.  In the written Lisp, the
+  else-part is usually written to start on a line of its own and is
+  indented less than the then-part:
+
+  #+begin_src emacs-lisp
+    (if true-or-false-test
+        action-to-carry-out-if-the-test-returns-true
+      action-to-carry-out-if-the-test-returns-false)
+  #+end_src
+
+- For example, the following ~If~ expression prints the message ~"4
+  not greater than 5!"~ when you evaluate it in the usual way:
+
+  #+begin_src emacs-lisp
+    (if (> 4 5)                                 ; if-part
+        (message "4 falsely greater than 5!")   ; then-part
+      (message "4 is not greater than 5!"))     ; else-part
+  #+end_src
+
+- Note that the /different levels of indentation/ make it easy to
+  distinguish the then-part from the else-part.
+
+- We can extend the ~type-of-animal~ function t include an else-part by
+  simply incorporating an additional part of the ~if~ expression.
+
+- You can see the consequences of doing this if you evaluate the
+  following version of the ~type-animal- function to install it and
+  then evaluate the two subsequent expression to pass different
+  argument to the function.
+
+  #+begin_src emacs-lisp
+    (defun type-of-animal (characteristic)              ; Second version
+      "Print message in echo area depending on CHARACTERISTIC.
+              If the CHARACTERISTIC is the string \"fierce\",
+              then warn of a tiger; else say it is not fierce."
+      (if (equal characteristic "fierce")
+      (message "It is a tiger!")
+      (message "It is not fierce!")))
+  #+end_src
+
+  #+begin_src emacs-lisp
+    (type-of-animal "fierce")
+
+    (type-of-animal "striped")
+  #+end_src
+
+- When you evaluate ~(type-of-animal "fierce")~, you will see the
+  following message printed in the echo area: ~"It is a tiger!"~; but
+  when you evaluate ~(type-of-animal "stripes")~, you will see ~"It is
+  not fierce!"~.
+
+- Of course, i the /characteristic/ were ~"ferocious"~, the message
+  ~"It is not fierce!"~ would be printed; and it would be misleading!
+  When you write code, you need to take into account the possibility
+  that some such argument will be tested by the ~if~ and write your
+  program accordingly
+
+** Truth & Falsehood in Emacs Lisp
+
+- There is an important aspect to the truth test in an ~if~
+  expression.  So far, we have spoken if "true" and "false" as values
+  of predicates as if they were new kinds of Emacs of Emacs Lisp
+  objects.  In fact, "false" is just our old friend ~nil~.  Anything
+  else--anything at all--is "true".
+
+- The expression that test for truth is interpreted as /true/ if the
+  result of evaluating it is a value that is not ~nil~.  In other
+  words, the result of the test is considered true if the value
+  returned is a /number/ such as 47, a /string/ such as ~"hello"~, or
+  a /symbol/ (other than ~nil~) such as ~flowers~, or a /list/ (so
+  long as it is not empty) or even a /buffer/!.
+
+  - [[An explanation of ~nil~][nil explained]]        ~nil~ has two meaning
+
+*** An explanation of ~nil~
+
+- Before illustrating a test for truth, we need an explanation of
+  ~nil~.
+
+- In Emacs Lisp, the symbol ~nil~ has two meanings. First, it means
+  the empty list.  Second, it means false and is the value returned
+  when a true-or-false-test tests false.  ~nil~ can be written as an
+  empty list, ~()~, or as ~nil~.  As far as the Lisp interpreter is
+  concerned, ~()~ and ~nil~ are the same.  Humans, however, tend to
+  use ~nil~ for false and ~()~ for the empty list,
+
+- In the first example, the number 4 is evaluated as the test in the
+  ~if~ expression and returns itself; consequently, the then-part of
+  the expression is evaluated and returned: ~'true'~ appears in the
+  echo area.  In the second example, the ~nil~ indicates false,
+  consequently, the else-part of the expression is evaluated and
+  returned: ~'false'~ appears in the echo area.
+
+  #+begin_src emacs-lisp
+    (if 4
+        'true
+      'false)
+
+    (if nil
+        'true
+      'false)
+  #+end_src
+
+- Incidentally, if some other useful value is not available for a test
+  that returns true, then the Lisp interpreter will return the symbol
+  ~t~ for true.  For example, the expression ~(> 5 4)~ returns ~t~
+  when evaluated, as you can see by evaluating it in the usual way:
+
+  #+begin_src emacs-lisp
+    (> 5 4)
+  #+end_src
+
+  on the other hand, this function ~nil~ if the else is false.
+
+  #+begin_src emacs-lisp
+    (> 4 5)
+  #+end_src
+
+** ~save-excursion~
+
+- The ~save-excursion~ function is the final special form that we will
+  discuss in this chapter.
+
+- In Emacs Lisp programs used for editing, the ~save-excursion~
+  function is very common.  It saves the location of point, executes
+  the body of the function, and the restores point to its previous
+  position if its location was changed.  It primary purpose is to keep
+  the user being surprised and disturbed by unexpected movement of
+  point.
+
+  -- [[Point and Mark][Point and Mark]]
+
+  -- [[Template for a ~save-excursion~ Expression][Template for ~save-excursion]]
+
+*** Point and Mark
+
+- Before discussing ~save-excursion~, however, it may be useful first
+  to review what point and mark are in GNU Emacs.  /Point/ is the
+  *current location of the cursor*.  Whenever the cursor is, that is
+  point.  More precisely, on terminals where the cursor appears to be
+  on top of a character, point is immediately before the character.
+  In Emacs Lisp, point is an *integer*.  The first character in a
+  buffer is number one, the second is number two, and so on.  The
+  function ~point~ returns the current position of the cursor as a
+  number.  Each buffer has its own value for point.
+
+- The /mark/ is another position in the *buffer*; its value can be set
+  with a command such as ~C-SPC (set-mark-command)~.  If a mark has
+  been set, you can use the command ~C-x C-x
+  (exchange-point-and-mark)~ to cause the cursor to jump to the mark
+  and set the mark to be the previous position of point.  In addition,
+  if you set another mark, the position of the previous mark is saved
+  in the mark ring.  Many mark positions can be saved this way.  You
+  can jump the cursor to a saved mark by typing ~(C-u C-SPC)~ one or
+  more times.
+
+- The part of the buffer between point and mark is called /the
+  region/.  Numerous commands work on the region, including
+  ~center-region~, ~count-lines-region~, ~kill-region~, and
+  ~print-region~.
+
+- The ~save-excursion~ special form saves the location point and
+  restore this point and restore this position after the code within
+  the body of the special form is evaluated by the Lisp interpreter.
+  Thus if point were in the beginning of a piece of text and some code
+  moved point to the he end of the buffer, the ~save-excursion~ would
+  put point back to where it was before, after the expression in the
+  body of the function were evaluated.
+
+- In Emacs, a function frequently moves point as part of its internal
+  workings even though a user would not expect this.  For example,
+  ~count-lines-region~ moves point.  To prevent the user from being
+  bothered by jumps that are both unexpected and (from the user's
+  point of view) unnecessary, ~save-excursion~ is often used to keep
+  point in the location expected by the user.  The use of
+  ~save-excursion- is *good housekeeping*.
+
+- To make sure the house stays clean, ~save-excursion~ restores the
+  value of point even if something goes wrong in the code inside of it
+  (or, to be more precise and to use the proper jargon, "in case of
+  abnormal exit").  This is feature is very helpful.
+
+- In addition to recording the value of point, ~save-excursion~ keeps
+  track of the current buffer, and restore it, too.  This means you
+  can write code that will change the buffer and have ~save-excursion~
+  switch you back to the original buffer.  This is how
+  ~save-excursion~ is used in ~append-to-buffer~.  (See The Definition
+  of ~append-to-buffer~).
+
+*** Template for a ~save-excursion~ Expression
+
+- The template for a ~save-excursion~ is simple:
+
+  #+begin_src emacs-lisp
+    (save-excursion
+      body...)
+  #+end_src
+
+- The body of the function is one or more expressions that will be
+  evaluated in sequence by the Lisp interpreter.  If there is more
+  than one expression in the body, the value of the last one will be
+  returned as the value of the ~save-excursion~ function.  The order
+  expressions in the body are evaluated only for their side effects;
+  and ~save-excursion~ itself is used only for its side effect (which
+  is restoring the position of point).
+
+- In more detail, the template for a ~save-excursion~ expression looks like this:
+
+  #+begin_src emacs-lisp
+    (save-excursion
+      first-expression-in-body
+      secon-expression-in-body
+      third-expression-in-body
+      ...
+      last-expression-in-body)
+  #+end_src
+
+- An expression, of course, may be a symbol on its own or a list.
+
+- In Emacs Lisp code, a ~save-excursion~ expression often occurs
+  within the body of a ~let~ expression. It looks like this:
+
+  #+begin_src emacs-lisp
+    (let varlist
+      (save-excursion
+        body..))
+  #+end_src
+
 ** Review
+
+- In the last few chapter we have introduced a macro and a fair number
+  of function and special forms.  Here they are describe in brief,
+  along with a few similar function that have not been mentioned yet.
+
+- ~eval-last-sexp~
+
+  Evaluates the last symbolic expression before the current location
+  of point.  The value is printed in the echo area unless the function
+  is invoked with an argument; in the case, the output is printed in
+  the current buffer.  This command is normally bound to ~C-x C-e~.
+
+- ~defun~
+
+  Define function.  This macro has up to five parts: /the name/, /a
+  template/ for arguments that will be passed to the function,
+  /documentation/, an optional /interactive declaration/, and the
+  /body/ of the definition.
+
+  For example, in Emacs the function definition of
+  ~dired-unmark-all-marks~ is as follows.
+
+  #+begin_src emacs-lisp
+    (defun dired-unmark-all-marks ()
+      "Remove all marks from all files in the Dired buffer."
+      (interactive)
+      (dired-unmark-all-files ?\r))
+  #+end_src
+
+- ~interactive~
+
+  Declare to the interpreter that the function can be used
+  interactively.  This special form my be followed by a string with
+  one or more parts that pass in the information to the arguments of
+  the function, in sequence.  These parts may be also tell the
+  interpreter to prompt for information.  Parts of the string are
+  separated by newlines, ~'\n'~.
+
+  Common code characters are:
+
+  - ~b~
+
+     The name of existing buffer
+
+  - ~f~
+
+     The name of existing file
+
+  - ~p~
+
+     The numeric prefix argument. (Note that this ~p~ is lower
+    case.)
+
+  - ~r~
+
+    Point and the mark, as two arguments, smallest first.  This is
+    the only code letter that specified two successive argument rather
+    than one.
+
+- ~let~
+
+  Declare that a list of variables is for use within the body of the
+  ~let~ and give them an initial value, either ~nil~ or a specified
+  value; then evaluate the rest of the expression in the body of the
+  ~let~ and return the value of the last one.  Inside the body of the
+  ~let~, the Lisp interpreter does not see the values of the variables
+  of the same names that are bound outside of the ~let~.
+
+  For example,
+
+  #+begin_src emacs-lisp
+    (let ((foo (buffer-name))
+          (bar (buffer-size)))
+      (message
+       "This buffer is %s and has %d characters."
+       foo bar))
+  #+end_src
+
+- ~save-excursion~
+
+  Record the values of point and the current buffer before evaluating
+  the body of this special form.  Restore the value of point and
+  buffer afterward.
+
+  For example,
+
+  #+begin_src emacs-lisp
+    (message "We are %d characters into this buffer."
+             (- (point)
+                (save-excursion
+                  (goto-char (point-min)) (point))))
+  #+end_src
+
+- ~if~
+
+  Evaluate the first argument to the function; if is true, evaluate
+  the second argument; else evaluate the third argument, if there is
+  one.
+
+  The ~if~ special form is called a /conditional/.  There are other
+  conditional in Emacs Lisp, but ~if~ is perhaps the most commonly
+  used.
+
+  for example,
+
+  #+begin_src emacs-lisp
+    (if (= 27 emacs-major-version)
+        (message "This is version 27 Emacs")
+      (message "This is not version 27 Emacs"))
+  #+end_src
+
+- ~<~, ~>~, ~<=~, ~>=~
+
+  The ~<~ function test whether its first argument is smaller than its
+  second argument.  A corresponding function, ~>~, tests whether the
+  first argument is greater than the second.  Likewise ~<=~ test
+  whether the first argument is less than or equal to the second and
+  ~>=~ test whether the first argument is greater than or equal to the
+  second .  In all cases, both arguments must be /numbers/ or
+  /markers/ (markers indicate position in buffers).
+
+- ~=~
+
+  The ~=~ function test whether two arguments, both numbers or
+  markers, are equal.
+
+- ~equal~, ~eq~
+
+  Test whether two objects are the same. ~equal~ uses one meaning of
+  the word "same" and ~eq~ uses another; ~equal~ returns true if the
+  two objects have a similar structure and contents, such as two
+  copies of the same book.  On the other hand, ~eq~, returns true if
+  both arguments are actually the same /object/.
+
+- ~string<~, ~string-lessp~, ~string=~, ~string-equal~
+
+  The ~string-lessp~ function tests whether its first arguments is
+  smaller than the second argument.  A shorter, alternative name for
+  the same function (a ~defalias~) is ~string<~.
+
+  The arguments to ~string-lessp~ must be /strings/ or /symbols/; the
+  ordering is lexicographic, so case is significant.  The print names
+  of symbols are used instead of the symbol themselves.
+
+  An empty string, ~""~, a string with no characters in it, is smaller
+  than any string of characters.
+
+- ~message~
+
+  Print a message in the echo area. The first argument is string that
+  can contain '~%s~', '~$d~', or '~%c~' to print the value of
+  arguments that follow the string.  The argument used by '~%s~' must
+  be a string or a symbol; the argument '~%d~' must be a number.  The
+  argument '~%c~' must be an ASCII code number; it will be printed as
+  the character with that ASCII code.  (Various other %-sequence have
+  not been mentioned.)
+
+- ~setq~, ~set~
+
+  The ~setq~ special form sets the value of its first argument to the
+  value of the second argument.  The first argument is automatically
+  quoted by ~setq~.  It does the same for succeeding pairs of
+  arguments.  An other function, ~set~, takes only two arguments and
+  evaluates both of them before setting the value returned by its
+  first argument to the value returned by its second argument.
+
+- ~buffer-name~
+
+  Without an argument, return the name of the buffer, as a string.
+
+- ~buffer-file-name~
+
+  Without an argument, return the name of the buffer, as a string.
+
+- ~current-buffer~
+
+  Return the buffer in which Emacs is active; it may not the buffer is
+  visible on the screen
+
+- ~other-buffer~
+
+  Return the most recently selected buffer (other than the buffer
+  passed to ~other-buffer~ as an argument and other than the current
+  buffer).
+
+- ~switch-buffer~
+
+  Select a buffer for Emacs to be active in and display in the current
+  window so users can look at it.  Usually bound to ~C-x C-b~
+
+- ~set-buffer~
+
+  Switch Emacs's attention to a buffer on which programs will run.
+  Don't alter what the window is showing.
+
+- ~buffer-size~
+
+  Return the number of character in the current buffer.
+
+- ~point~
+
+  Return the value of the current position of the cursor, as an
+  integer counting the number of characters from the beginning of the
+  buffer.
+
+- ~point-min~
+
+  Return the minimum permissible value of point in the current buffer.
+  This is 1, unless narrowing is in effect.
+
+- ~point-max~
+
+  Return the value of the maximum permissible value of point in the
+  current buffer.  This is the end of the buffer, unless narrowing is
+  in effect.
