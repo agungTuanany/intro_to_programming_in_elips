@@ -32,6 +32,39 @@
   <https://github.com/agungTuanany/intro_to_programming_in_elips.git>
 
 * List Processing
+- To the untutored eye, Lisp is a strange programming language.  In
+  Lisp code there are /parentheses everywhere/.  Some people even
+  claim that the name stand for "Lots of Isolated Silly Parentheses".
+  But the claim is unwarratend.
+
+- Lisp stand for Lost processing, and the programming language handle
+  /list/ (and list of list) by putting them between parentheses.  The
+  parentheses mark the boundaries of the list.  Sometimes a list is
+  preceded by an apostrophe '~'~', called a /single-quote/ in Lisp.
+
+- Lists are the basic of lisps.
+
+  - [[Lisp List & Atom][Lisp Lists]]              What are lists?
+
+  - [[Lisp List & Atom][Run A program]]           Any list in Lisp is a program ready to run
+
+  - [[Run A program][Making Errors]]           Generating an error message
+
+  - [[Symbol Names and Function Definition][Names & Definitions]]     Names of symbol and function definitions
+
+  - [[The Lisp Interpreter][Lisp Interpreter]]        What the Lisp interpreter does
+
+  - [[Evaluation][Evaluation]]              Running a program
+
+  - [[Variables][Variables]]               Returning a value from a variable
+
+  - [[Arguments][Arguments]]               Passing information to a function
+
+  - [[Setting the Value of a Variable][set & setq]]              Setting the value of a variable
+
+  - [[Summary][Summary]]                 The major points
+
+
 ** Lisp List & Atom
 *** Vocabularies:
 
@@ -131,20 +164,18 @@ Above list is same as this:
 ** Generate an Error Message
 
   #+CAPTION: Error Example
-  #+BEGIN_CENTER
-  \begin{verbatim}
-          * ---------- Buffer: *Backtrace* ----------
-          * Debugger entered--Lisp error: (void-function this)
-          * (this is an unquoted list)
-          * eval((this is an unquoted list) nil)
-          * elisp--eval-last-sexp(nil)
-          * eval-last-sexp(nil)
-          * funcall-interactively(eval-last-sexp nil)
-          * call-interactively(eval-last-sexp nil nil)
-          * command-execute(eval-last-sexp)
-          * ---------- Buffer: *Backtrace* ----------
-  \end{verbatim}
-  #+END_CENTER
+  #+begin_src emacs-lisp
+    * ---------- Buffer: *Backtrace* ----------
+     Debugger entered--Lisp error: (void-function this)
+     (this is an unquoted list)
+     eval((this is an unquoted list) nil)
+     elisp--eval-last-sexp(nil)
+     eval-last-sexp(nil)
+     funcall-interactively(eval-last-sexp nil)
+     call-interactively(eval-last-sexp nil nil)
+     command-execute(eval-last-sexp)
+    * ---------- Buffer: *Backtrace* ----------
+  #+end_src
 
 - We often try o generate error message intentionally.
 
@@ -235,7 +266,7 @@ Above list is same as this:
 
 - Thus all the names for function that deal with /Textinfo/ start with
   /'textinfo-'/, and those for function to deal with /reading mail/
-  start with /'rmail'/.
+  start with /'mail'/.
 
 ** The Lisp Interpreter
 
@@ -482,29 +513,48 @@ Above list is same as this:
 ** Arguments
 
 - To see how information is passed to functions, let's look again at
-  our old standby, the addition of two plus two, in Lisp, this is
+  our old standby, the addition of two plus two.  In Lisp, this is
   written as follows:
 
   #+begin_src emacs-lisp
-    (+ 2 2)     ;; type (C-x C-e) to evaluate the value
+    (+ 2 2)
   #+end_src
 
 - If you evaluate this expression, the number 4 will appear in your
   echo area.  What the Lisp interpreter does is add the numbers that
+<<<<<<< HEAD
+  follow the ~+~.
+
+- The numbers added by ~+~ are called the /arguments/ of the function
+  ~+~.  These numbers are the information that is given to or /passed/
+  to the function.
+=======
   follows the ~+~.
+>>>>>>> 91c0ca6 (Fix subsubsequent on Chapter-1 (arguments))
 
 - The word "argument" comes from the way it used in mathematics and
-  does not refer to a disputation between two people; instead it
+  *does not* refer to a disputation between two people; instead it
   refers to the information presented to the function, in this case,
   to the ~+~.
 
-- In Lisp, the arguments to a function are the atoms or list that
-  follow the function.  The value returned by the evaluation (process)
-  of these atoms or lists are passed to the function.
+- In Lisp, the arguments to a function are the atoms or lists that
+  follow the function.  The values returned by the evaluation of these
+  atoms or lists are passed to the function.
 
-- Different functions requires different numbers of arguments, some
+- Different function require different numbers of arguments; some
   function require none at all.
 
+<<<<<<< HEAD
+  - [[Argument's Data Types][Data Types]]                          Types of data passed to a function
+
+  - [[An Argument as the Value of a Variable or List][Args as Variable or List]]            An arguments can be the value of variable or list
+
+  - [[Variable Number of Arguments][Variable Number of Arguments]]        Some functions may take a variable number of arguments
+
+  - [[Using the Wrong Type Object as an Argument][Wrong Type of Argument]]              Passing an argument of the wrong type to a function
+
+  - [[The ~message~ Function][message]]                    A useful function for sending message
+=======
   - [[Argument's Data Types][Argument's Data Types]]          Types data passed to a function
 
   - [[An Argument as the Value of a Variable or List][Args as Variable or List]]       An Arguments can be the value of a variable or list
@@ -514,243 +564,266 @@ Above list is same as this:
   - [[Wrong Type of Argument][Wrong Type of Argument]]          Passing an argument of the wrong type of function
 
   - [[The ~message~ Function][ message]]               A useful function for sending messages
+>>>>>>> 91c0ca6 (Fix subsubsequent on Chapter-1 (arguments))
 
 *** Argument's Data Types
 
-- The type of data that should be passed to a function depends on what
+- The type of data that should be passed to a function depends in what
   kind of information it uses.  The arguments to a function such as
-  =+= must have values that are numbers, since =+= adds numbers.
+  ~+~ must have values that are numbers, since ~+~ adds numbers.
   Other function use different kinds of data for their arguments.
 
-  for example, the ~concat~ function links together or unites two or
+- For example, the ~concat~ function links together or unites two or
   more strings of text to produce a string.  The arguments are
-  strings.  Concatenating the two characters string ~abc~, ~def~
-  produces the single string ~abcdef~.  This can be seen by evaluating
-  the following:
+  strings.  Concatenating the two character string ~abc~, ~def~
+  produces the single string ~abcdef~.  This can be evaluating the
+  following:
 
   #+begin_src emacs-lisp
-    (concat "abc" "def")     ;; type (C-x C-e) to evaluate the value
+    (concat "abc" "def")
   #+end_src
 
-- The value produced by evaluating this expression is "~abcdef~".
+  The value produced by evaluating this expression is ~"abcdef"~.
 
 - A function such as ~substring~ uses both a string and numbers as
-  arguments.  The function returns a part of the string, a
-  /=substring=/ of the first argument.  This function takes three
-  arguments.  It first argument is the string of characters, the
+  arguments.  The function returns as part of the string, a
+  /substring/ of the first argument.  This function /takes three
+  arguments/.  Its first arguments is the string of characters, the
   second and third arguments are numbers that indicate the beginning
   (inclusive) and end (exclusive) of the substring.  The numbers are a
   count of the number of characters (including spaces and punctuation)
-  form the beginning of the string.
+  from the beginning of the string.
 
-- Note that the characters in a string are numbered from zero, not
-  one.
+- Note that the characters in a string are numbered from zero, not one.
+
+- For example, if you evaluate the following:
 
   #+begin_src emacs-lisp
-    (substring "the quick brown fox jumped." 16 19)
+(substring "The quick brown fox jumped." 16 19)
   #+end_src
 
-- you will see "fox"; appear in the echo area.  The arguments are the
-  string and the two numbers.
+  you will see ~"fox"~ in the echo area.  The arguments are the string
+  and the two numbers.
 
-- Note that the string passed to ~substring~ is a single atom even
+- Note that the string passed to ~subtring~ is a single atom even
   though it is made up of several words separated by spaces.  Lisp
-  counts everything between the two quotation marks as part of the
+  counts everything between the two quotation marks as a part of the
   string, including the spaces.
 
 - You can think of the ~substring~ function as a kind of atom smasher
-  since it takes otherwise indivisible atom and extracts a part.
-
-- However ~substring~ is only able to extract a substring from an
-  argument that is a string, not from another type of atom such as a
+  since it takes an otherwise indivisible atoms and extract a part.
+  However, ~substring~ is only able to extract a substring from an
+  argument that is a string, not from another type of atom such a
   number or symbol.
+
 
 *** An Argument as the Value of a Variable or List
 
 - An arguments can be a symbol that returns a value when it is
-  evaluated.  For example, when the symbol *=fill-column=* by itself
-  is evaluated, it returns a number. This can be used in addition.
+  evaluated.  For example, when the symbol ~fill-column~ by itself is
+  evaluated, it returns a number.  This number can be used in an
+  addition.
 
   #+begin_src emacs-lisp
-    (+ 2 fill-column)
+    fill-column         ; Default value is 70
+
+    (+ 2 fill-column)   ; The value become 72
+
   #+end_src
 
-- The value will be a number two more than what you get by evaluating
-  =fill-column= alone. For me, this is =72=, because my value of
-  =fill-column= is =70=.
+  The value will be a number two more than what you get by evaluating
+  ~fill-column~ alone. For me, this is 72, because my value of
+  ~fill-column~ is 72.
 
-- As we have just seen, an argument can be a symbol that returns a
+- as we have just seen, an arguments can be a symbol that returns a
   value when evaluated.  In addition, an argument can be a list that
-  returns a value when it is evaluated.
+  returns a value when it is evaluated. For example, on the following
+  expression, the arguments to the function ~concat~ are the strings
+  ~"The "~ and ~" red foxes."~ and the list ~(number-to-string (+ 2
+  fill-column))~.
+
+  #+begin_src emacs-lisp
+    (concat "The " (number-to-string (+ 2 fill-column)) " red foxes.")
+  #+end_src
+
+  If you evaluate this expression--and if, as with Emacs,
+  ~fill-column~ evaluates to *70--*~"The 72 red foxes."~ will appear in the echo area.
+
+  - Note that you must put spaces after the word ~"The"~ and before the
+   word ~'red'~ so they will appear in the final string.
+
+  - The function ~number-to-string~ converts the integer that the
+    addition function returns to a string.
+
+  - ~number-to-string~ is also known as ~int-to-string~.
 
 *** Variable Number of Arguments
 
-- Some function such as ~concat~, ~+~ or ~*~, take any number of
-  arguments.  These can be seen by evaluating each o the following
-  expression in the usual way.  What you will see in the echo area is
-  printed in the text after '=⇒=', which you may read as /"evaluate
+- Some functions, such as ~concat~, ~+~, or ~*~, take any number of
+  arguments. This can be seen by evaluating each of the following
+  expressions in the usual way.  What you will see in the echo area is
+  printed in this text after '~=~', which you may read as /"evaluates
   to"/.
 
-  - In the first set, the function have no arguments:
-
-    #+begin_src emacs-lisp
-      ;; type (C-x C-e) to evaluate the value
-      (+) ⇒ 0
-
-      (*) ⇒ 1
-    #+end_src
-
-  - In this set, the function have one arguments each:
-
-    #+begin_src emacs-lisp
-      ;; type (C-x C-e) to evaluate the value
-      (+ 3) ⇒ 3
-
-      (* 3) ⇒ 3
-    #+end_src
-
-  - In this set, the function have three arguments each:
-
-    #+begin_src emacs-lisp
-      ;; type (C-x C-e) to evaluate the value
-      (+ 3 4 5) ⇒ 12
-
-      (* 3 4 5) ⇒ 60
-    #+end_src
-
-*** Wrong Type of Argument
-
-- When a function is passed an argument of the wrong type, the Lisp
-  interpreter produces an error message.  For example, the =+=
-  function expects the values of its arguments to be numbers.  As an
-  experiment we can pass it the quoted symbol *=hello=* instead of a
-  number.
+- In the first set, the function have no argument:
 
   #+begin_src emacs-lisp
-    (+ 2 'hello)      ;; type (C-x C-e) to evaluate the value
+    (+)       ⇒ 0
+    (*)       ⇒ 1
   #+end_src
 
-- when you do this, you will generate an error message.  What has
-  happened is that =+= has tried to add the =2= to the value returned
-  by ='hello=, but the value returned by ='hello= is the symbol
-  =hello=, not number.  Only numbers can be added. So =+= could not
-  carry out its addition.
+- In this set, the function have one argument each:
 
-  #+begin_center
-  \begin{verbatim}
-      * ---------- Buffer: *Backtrace* ----------
-      * Debugger entered--Lisp error:
-      *      (wrong-type-argument number-or-marker-p hello)
-      * +(2 hello)
-      * eval((+ 2 'hello) nil)
-      * elisp--eval-last-sexp(nil)
-      * eval-last-sexp(nil)
-      * funcall-interactively(eval-last-sexp nil)
-      * call-interactively(eval-last-sexp nil nil)
-      * command-execute(eval-last-sexp)
-      * ---------- Buffer: *Backtrace* ----------
-  \end{verbatim}
-  #+end_center
+  #+begin_src emacs-lisp
+    (+ 3)       ⇒ 3
+    (* 3)       ⇒ 3
+  #+end_src
+
+- In this set, the function have three arguments each:
+
+  #+begin_src emacs-lisp
+    (+ 3 4 5)       ⇒ 12
+    (* 3 4 5)       ⇒ 60
+  #+end_src
+
+*** Using the Wrong Type Object as an Argument
+
+- When a function is passed an argument of the wrong type, the Lisp
+  interpreter produces an error message.  For example, the ~+~
+  function expects the values of its arguments to be numbers.  As an
+  experiment we can pass it the quoted symbol ~hello~ instead of a number.
+
+  #+begin_src emacs-lisp
+    (+ 2 'hello)
+  #+end_src
+
+- When you do this you will generate an error message.  What has
+  happened is that ~+~ has tried to add the 2 to the value returned by
+  ~'hello~, but the value returned by ~'hello~ is the symbol ~hello~,
+  not a number.  Only number can be added.  So ~+~ could not carry out
+  its addition.
+
+  #+caption: Error Example
+  #+begin_src emacs-lisp
+    * ---------- Buffer: *Backtrace* ----------
+    Debugger entered--Lisp error:
+    (wrong-type-argument number-or-marker-p hello)
+    +(2 hello)
+    eval((+ 2 'hello) nil)
+    elisp--eval-last-sexp(t)
+    eval-last-sexp(nil)
+    funcall-interactively(eval-print-last-sexp nil)
+    call-interactively(eval-print-last-sexp nil nil)
+    command-execute(eval-print-last-sexp)
+    * ---------- Buffer: *Backtrace* ----------
+ #+end_src
 
 - As usual, the error message tries to be helpful and makes sense
-  after you learn how to read it.
+  after you learn how to read it. (~quote-hello)~ is an expansion of
+  the abbreviation ~'hello~.
 
-- The first part of the error message is straightforward. It says
-  ~'wrong type arguments'~.  Next comes the mysterious jargon word
-  ~'number-or-marked-p'~.  This word is trying to tell you what kind
-  of argument the ~+~ expected.
+- The first part of the error message is straightforward; it says
+  '~wrong-type-argument~'.  Next comes the mysterious jargon word
+  '~number-marker-p~'.  This word is trying to tell you what kind of
+  argument the ~+~ expected.
 
-- The symbol ~number-or-marker-p~ says that the Lisp interpreter is
-  trying to determine whether the information presented it (the value
-  of the arguments) is a number or a marker (a special object
-  representing a buffer position).  What it does is test to see
-  whether the ~+~ is being given numbers to add.  It also tests to see
-  whether the argument is something called a *marker*, which is
-  specific feature of Emacs Lisp.
+- The symbol ~number-or-maker-p~ says that the Lisp interpreter is
+  trying to determine whether the information presented (the value of
+  the argument) is a number or a marker (a special object representing
+  a buffer position).  What it does is test to see whether the ~+~ is
+  being given numbers to add.  It also tests to see whether the
+  argument is something called a marker, which is a specific feature
+  in Emacs Lisp.  In Emacs Lisp, ~+~ can be used to add the numeric
+  value of marker position as numbers.
 
-- In Emacs, locations in a buffer are recorded as markers. When the
-  mark is set with ~C-@~ or ~C-SPC~ command, it position is kept a
-  marker. The mark can be considered a number--the number of
-  characters the location is from the beginning of the buffer.
+- The ~'p~ of ~number-or-maker-p~ is the embodiment of a practice
+  started in the early days of Lisp programming.  The ~p~ stands for
+  "*predicate*".
 
-- The ~'p'~ of ~number-or-marker-p~ is the embodiment of practice
-  started in the early days of Lisp programming. The ~'p'~ stand for
-  /"predicate"/.
-
-- In the jargon used by the early Lisp researchers, a predicate refers
+  In the jargon used by the early Lisp researchers a predicate refers
   to a function to determine whether some property is true or false.
-  So the ~'p'~ tells us that ~number-or-marker-p~ is the name of a
+
+  So the '~p~' tells us that ~number-or-marker-p~ is the name of a
   function that determines whether it is true or false that the
   argument supplied is a number or a marker.
 
-- Other Lisp symbol that end in ~'p'~ include ~zerop~, a function that
-  tests whether its arguments has the value of zero, and ~listp~, a
-  function that test whether its arguments is a list.
-
-- Finally, the last part of the error message is the symbol ~hello~.
-  This is the value of the argument was passed to ~+~.  If the
-  addition had been passed the correct type of object, the value
-  passed would have been a number, such as ~37~, rather than a symbol
-  like ~hello~.  But then you would not have got the error message.
+  Other Lisp symbol that end in '~p~' include ~zerop~, a function test
+  whether its argument has the value of zero; and ~listp~, a function
+  that tests whether its argument is a list.
 
 *** The ~message~ Function
 
-- Like the ~+~, the ~message~ function takes a variable number of
-  arguments.  It used to send message to the users and is so useful
+- Like ~+~, the ~message~ function takes a variable numbers of
+  arguments.  It used to send messages to the user and is so useful
   that we will describe it here.
 
-- A message is printed in the echo area. For example you can print
+- A message is printed in the echo area.  For example, you can print a
   message in your echo area by evaluating the following list:
 
   #+begin_src emacs-lisp
     (message "This message appears in the echo area!")
   #+end_src
 
-- The whole string between double quotation marks is a single argument
-  and is printed ~in toto~.
+- The whole string between double quotation marks is a /single
+  argument/ and is printed in /toto/.
 
-- Note that in this example, the message itself will appear in the
+  Note that in this example, the message itself will appear in the
   echo area within double quotes; that is because you see the value
-  returned by the message function.  In most uses of ~message~ in
-  programs that you write, the text will be printed in the echo area
-  as a /side-effect/, without the quotes.
+  returned by the ~message~ function.  In most uses of ~message~ in
+  program that you write, the text will be printed in the echo area as
+  a side-effect, without quotes.  See ~multiply-by-seven~ in detail,
+  for an example of this.
 
 - However, if there is a '~%s~' in the quoted string of characters,
-  the ~message~ function does not print '~%s~' as such, but looks to
-  the arguments that follows the string.  It evaluates the second
-  argument and print the value at the location in the string where the
-  '~-%s~' is.
+  the ~message~ function does not print the '~%s~' as such, but looks
+  to the argument that follows the string.  It evaluates the second
+  argument and prints the value at the location in the string where
+  the '~%s~ is.
 
   #+begin_src emacs-lisp
-    (message "The name of this buffer is: %s" (buffer-name))
+    (message "The name of this buffer is: %s." (buffer-name))
   #+end_src
 
-- In Info, ~"the name of this buffer is: *info*."~ will appear in the
-  echo area.  The function ~buffer-name~ returns the name of the name
-  of the buffer as a string, which the ~message~ function inserts in
-  place of ~%s~.
+- In info, ~"The name of this buffer is: *info*."~ will appear in the
+  echo area.  The function ~buffer-name~ returns the name of the
+  buffer as a string, which the ~message~ function insert in place of
+  ~%s~.
 
-
-- To print a value as an integer, use '~%d~' in the same way as '~%s~'.
-  For example, to print a message in the echo area that states the value
-  of the ~fill-colum~, evaluate the following:
+- To print a value as an integer, use '~%d~' in the same way as
+  '~%s~'.  For example, to print a message in the echo area that
+  states the value of the ~fill-column~, evaluate the following:
 
   #+begin_src emacs-lisp
-    (message "There are %d %s in the office"
-             (- fill-column 14) "pink elephat")
+(message "The value of fill-column is %d." fill-column)
   #+end_src
 
-- a rather whimsical message will appear in your echo area. On my
-  system it says, ~"There are 56 pink elephant in the office"~.
+- On my system, when I evaluate this list, ~"The value of fill-column
+  is 70."~ appears in my echo area. (actually, you can use ~%s~ to
+  print a number.  It is non-specific.  ~%d~ prints only the pat of a
+  number left of a decimal point, and not anything that is not a
+  number.)
 
-- The expression (- fill-column 14)~ is evaluated and the resulting
+- If there is more than one '~%s~' in the quoted string, the value of
+  the first argument following the quoted string is printed at the
+  location of the first '~%s~' and the value of the second argument is
+  printed at the location of the second '~%s~', and so on.
+
+  #+begin_src emacs-lisp
+    (message "Tere are %d %s in the office!"
+         (- fill-column 14) "pink elephants")
+  #+end_src
+
+  a rather whimsical message will appear in your echo area.  On my
+  system it says, ~"there are 56 pink elephants in the office!"~.
+
+- The expression ~(- fill-column 14)~ is evaluated and the resulting
   number is inserted in place of the '~%d~'; and the string in double
-  quotes, ~"pink elephant"~, is treated as a single argument and
-  inserted in place of the '~%s~'. (That is to say, a string between
-  double quotes evaluates to itself, like a number.)
+  quotes, ~"pink elephants"~, is treated as a single argument and
+  inserted in place of the '~%s~'.  (That is to say, a string between
+  double quotes evaluates itself, like a number.)
 
-- Finally, here is somewhat complex examples that not only illustrates
-  the computation of a number, but also shows how you can use an
+- Finally, here is somewhat complex example that not only illustrates
+  the computation of a number, but also shows you how you can use an
   expression within an expression to generate the text that is
   substituted for '~%s~':
 
@@ -760,18 +833,18 @@ Above list is same as this:
              (concat "red "
                      (substring
                       "The quick brown foxes jumped." 16 21)
-                     "leaping"))
+                     " leaping."))
   #+end_src
 
-- In this example, ~message~ has three arguments, the string, ~"he saw
+- In this example, ~message~ has three arguments: the string, ~"He saw
   %d %s"~, the expression, ~(- fill-column 32)~, and the expression
-  beginning with the function ~concat~.  The value resulting from the
-  evaluation of ~(- fill-column 32)~ is inserted in place of the '~%d~';
-  and the value returned by the expression beginning with ~concat~ is
-  inserted in place of the '~%s~'.
+  beginning with the function ~concat~.  The value resulting from
+  evaluation of ~(- fill-column 32)~ is inserted in place of the
+  '~%d~', and the value returned by the expression beginning with
+  ~concat~ is inserted in place of the '~%s~'.
 
-- When your fill column is ~70~ and you evaluate the expression, the
-  message ~"He swa 38 red foxes jumped."~ appears in echo area.
+- When your fill column is 70, and you evaluate the expression, hte
+  message ~"He saw 38 red foxes leaping."~ appears in your echo area.
 
 ** Setting the Value of a Variable
 
