@@ -522,15 +522,12 @@ Above list is same as this:
 
 - If you evaluate this expression, the number 4 will appear in your
   echo area.  What the Lisp interpreter does is add the numbers that
-<<<<<<< HEAD
   follow the ~+~.
 
 - The numbers added by ~+~ are called the /arguments/ of the function
   ~+~.  These numbers are the information that is given to or /passed/
   to the function.
-=======
   follows the ~+~.
->>>>>>> 91c0ca6 (Fix subsubsequent on Chapter-1 (arguments))
 
 - The word "argument" comes from the way it used in mathematics and
   *does not* refer to a disputation between two people; instead it
@@ -544,7 +541,6 @@ Above list is same as this:
 - Different function require different numbers of arguments; some
   function require none at all.
 
-<<<<<<< HEAD
   - [[Argument's Data Types][Data Types]]                          Types of data passed to a function
 
   - [[An Argument as the Value of a Variable or List][Args as Variable or List]]            An arguments can be the value of variable or list
@@ -554,17 +550,16 @@ Above list is same as this:
   - [[Using the Wrong Type Object as an Argument][Wrong Type of Argument]]              Passing an argument of the wrong type to a function
 
   - [[The ~message~ Function][message]]                    A useful function for sending message
-=======
-  - [[Argument's Data Types][Argument's Data Types]]          Types data passed to a function
 
-  - [[An Argument as the Value of a Variable or List][Args as Variable or List]]       An Arguments can be the value of a variable or list
+  - [[Argument's Data Types][Argument's Data Types]]               Types data passed to a function
 
-  - [[Variable Number of Arguments][Variable Number of Arguments]]    Some function may take a variable number of arguments
+  - [[An Argument as the Value of a Variable or List][Args as Variable or List]]            An Arguments can be the value of a variable or list
 
-  - [[Wrong Type of Argument][Wrong Type of Argument]]          Passing an argument of the wrong type of function
+  - [[Variable Number of Arguments][Variable Number of Arguments]]        Some function may take a variable number of arguments
 
-  - [[The ~message~ Function][ message]]               A useful function for sending messages
->>>>>>> 91c0ca6 (Fix subsubsequent on Chapter-1 (arguments))
+  - [[Wrong Type of Argument][Wrong Type of Argument]]              Passing an argument of the wrong type of function
+
+  - [[The ~message~ Function][ message]]                   A useful function for sending messages
 
 *** Argument's Data Types
 
@@ -843,7 +838,7 @@ Above list is same as this:
   '~%d~', and the value returned by the expression beginning with
   ~concat~ is inserted in place of the '~%s~'.
 
-- When your fill column is 70, and you evaluate the expression, hte
+- When your fill column is 70, and you evaluate the expression, the
   message ~"He saw 38 red foxes leaping."~ appears in your echo area.
 
 ** Setting the Value of a Variable
@@ -2638,3 +2633,300 @@ the size of a buffer and the location of point within it.
   Return the value of the maximum permissible value of point in the
   current buffer.  This is the end of the buffer, unless narrowing is
   in effect.
+
+
+* A few Buffer-Related Functions
+
+- In This chapter we study in detail several of the function used in
+  GNU Emacs.  This is called a "walk-through".  These functions are
+  used as example of Lisp code, but are not imaginary examples; with
+  the exception of the first, simplified function definition, these
+  functions show the actual code used in GNU Emacs.  You can learn a
+  great deal from these definitions.
+
+- These function described here are all related to *buffers*. Later,
+  we will study other function.
+
+  - [[Finding More Information][Finding More]]        How to find more information.
+
+  - [[A Simplified ~beginning-of-buffer~ Definition][simplified-beginning-of-buffer]]        Show ~goto-char~, ~point-min~,and ~push-mark~.
+
+  - [[The Definition of ~mark-whole-buffer~][mark-whole-buffer]]             Almost the same as ~beginning-of-buffer~.
+
+  - [[][append-to-buffer]]              Uses ~save-excursion~ and ~insert-buffer-substring~.
+
+  -[[][Buffer Related Review]]  Review
+
+** Finding More Information
+
+- In this walk-through, I will describe each new function as we come
+  to it, sometimes in detail and sometimes briefly.  If you are
+  interested, you can get the full documentation of any Emacs Lisp
+  function at any time by typing ~C-h f~ and then the name of the
+  function (and then ~RET~).  Similarly, you can get the full
+  documentation for a variable by typing ~C-h v~ and then the name of
+  the variable (and then ~RET~).
+
+- Also, ~describe-function~ will tell you the location of the function location.
+
+- Put point into the name of the file that contains the function and
+  press the ~RET~ key.  In this case, ~RET~ means ~push-button~ rather
+  than "return" or "enter".  Emacs will take you directly to the
+  function definition.
+
+- More generally, if you want to see a function in it s original
+  source file, you can use the ~xref-find-definitions~ function to
+  jump to it.  ~xref-find-definition~ works with a wide variety of
+  languages, not just Lisp, and C, and it works with non-programming
+  text as well.  For example, ~xref-find-definitions~ will jump to the
+  various nodes in the Texinfo source file f this document (provided
+  that you've run the ~etags~ utility to record all the nodes in the
+  manual that come with Emacs; see Create Tags Table in the GNU Emacs
+  Manual).
+
+- To use the ~xref-find-definitions~ command, type ~M-.~ (i.e., press
+  the period key while holding down the ~META~ key, or else type the
+  ~ESC~ key and then type the period key), and then, at the prompt,
+  type in the name of the function whose source you want to see, such
+  as ~mark-whole-buffer~, and then type ~RET~.  (If the command
+  doesn't prompt, invoke it with an argument: ~C-u M-.~; see
+  Interactive Options.)
+
+  Emacs will switch buffers and display the source code for the
+  function on your screen (If instead of showing the source code for a
+  Lisp function, Emacs ask you which tags table to visit, invoke ~M-.~
+  from a buffer whose major mode is Emacs Lisp or Lisp interaction.).
+
+  To switch back to your current buffer, type ~M-~, or ~C-c b RET~.
+  (On some keyboards, the ~META~ key is labeled ~ALT~.).
+
+- Incidentally, the files that contain Lisp code are conventionally
+  called /libraries/.  The metaphor is derived from that if
+  specialized library, such as a law library or an engineering
+  library, rather than a general library.
+
+  Each library, or file, contains functions that relate to a
+  particular topic or activity, such as ~abbrev.el~ for handling
+  abbreviations and other typing shortcuts, and ~help.el~ for help.
+  (Sometimes several libraries provide code for a single activity, as
+  the various ~remail...~ files provide code for reading electronic
+  mail.)  In the GNU Emacs Manual, you will see sentences such as "The
+  ~C-h p~ commands lets you search the standard Emacs Lisp libraries
+  by topic keywords."
+
+** A Simplified ~beginning-of-buffer~ Definition
+
+- The ~beginning-of-buffer~ command is a good function to start with
+  since you are likely to be familiar with it and it is easy to
+  understand.  Used as an interactive command, ~beginning-of-buffer~
+  moves the cursor to the beginning of he buffer command is a good
+  function to start with since you are likely to be familiar with it
+  and it is easy to understand.  Used as an interactive command,
+  ~beginning-of-buffer~ moves the cursor to the beginning of the
+  buffer, leaving the mark at the previous position.  It is generally
+  bound to ~M-<~.
+
+- In this section, we will discuss a shortened version of the function
+  that shows how it is most frequently used.  This shortened function
+  work as written, but it does not contain the code for a complex
+  option.  In another section, we will describe the entire
+  function. (See Complete Definition of ~beginning-of-buffer~)
+
+- Before looking at the code, let's consider what the function
+  definition has to contain: it must include an expression that makes
+  the function interactive so it can be called by typing ~M-x
+  beginning-of-buffer~ or by typing a keychord such as ~M-<~; it must
+  include code to leave a mark at the original position in the buffer,
+  and it must include code to move the cursor to the beginning of the
+  buffer.
+
+- Here is the complete text of the shortened version of the function
+
+  #+begin_src emacs-lisp
+    (defun simplified-beginning-of-buffer ()
+      "Move point to the beginning of the buffer;
+              leave mark at previous position."
+      (interactive)
+      (push-mark)
+      (goto-char (point-min)))
+  #+end_src
+
+  - Like all the function definitions, this definition has /five/ parts following the macro ~defun~:
+
+    - The name: in this example, ~simplified-beginning-of-buffer~.
+
+    - A list of arguments; in this example, an empty list, ~()~,
+
+    - The documentation string.
+
+    - The interactive expression
+
+    - The body
+
+- In this function definition, the argument list is empty; this means
+  that this function does not require any arguments.  (When we look at
+  the definition for the complete function, we will see that it may be
+  passed an optional argument.)
+
+- The body of the function consist of the two lines:
+
+  #+begin_src emacs-lisp
+    (push-mark)
+    (goto-char (point-min))
+  #+end_src
+
+  - The first of these line is the expression, ~(push-mark)~.  When
+    this expression is evaluated by the Lisp interpreter, it sets a
+    mark at the current position of the cursor, wherever that may be.
+    The position of this mark is saved in the mark ring.
+
+  - The next line is ~(goto-char (point-min))~.  This expression jumps
+    the cursor to the minimum point in the buffer, that is, to the
+    beginning of the buffer (or to the beginning of accessible portion
+    of the buffer if it is narrowed.  See Narrowing and Widening.)
+
+  - The ~push-mak~ command sets a mark at the place where the cursor
+    was located before it was moved to the beginning of the buffer by
+    the ~(goto-char (point-min))~ expression.  Consequently, you can,
+    if you wish, go back to where you were originally by typing ~C-x
+    C-x~.
+
+  - That is all there is to the function definition!.
+
+- When you are reading code such as this and come upon an unfamiliar
+  function, such as ~goto-char~, you can find out what it does by
+  using the ~describe-function~ command.  To use this command, type
+  ~C-h f~ and then type in the name of the function and press ~RET~.
+  The ~describe-function~ command will print the function's
+  documentation string in a ~*Help*~ window.  For example, the
+  documentation for ~goto-char~ is:
+
+  #+begin_src emacs-lisp
+    Set point to Position, a number or marker.
+    Beginning of buffer is position (Point-min), end is (point-max).
+  #+end_src
+
+  - The function's one argument is the desired position.
+
+- The prompt for ~describe-function~ will offer you the symbol under
+  or preceding the cursor, so you can typing by positioning the cursor
+  right after the function and then type ~C-h f RET~.
+
+- The ~end-of-buffer~ function definition is written in the same way
+  as the ~beginning-of-buffer~ definition except that the body of the
+  function contains the expression ~(goto-char (point-max))~ in place
+  of ~(goto-char (point-min))~.
+** The Definition of ~mark-whole-buffer~
+
+- The ~mark-whole-buffer~ function is no harder to understand than the
+  ~simplified-beginning-of-buffer~ function.  In this case, however,
+  we will look at the complete function, not a shortened version.
+
+- The ~mark-whole-buffer~ function is not as commonly used as the
+  ~beginning-of-buffer~ function, but is useful nonetheless; it marks
+  whole buffer as a region by putting at the beginning and a mark at
+  the end of the buffer. It is generally bound to ~C-x h~.
+
+  - [[An overview of ~mark-whole-buffer~][mark-whole-buffer-overview]]
+
+  - [[Body of ~mark-whole-buffer~][Body of mark-whole-buffer]]
+
+*** An overview of ~mark-whole-buffer~
+
+- In GNU Emacs 22, the code for the complete function looks like this:
+
+  #+begin_src emacs-lisp
+    (defun mark-whole-buffer ()
+      "Put point at the beginning and mark at end of buffer.
+    You probably should not use this function in Lisp programs;
+    it is usually a mistake for a Lisp function touse any subroutine
+    that mark uses or sets the mark."
+      (interactive)
+      (push-mark (point))
+      (push-mark (point-max) nil t)
+      (goto-char (point-min)))
+  #+end_src
+
+- Like other functions, the ~mark-whole-buffer~ function fits into the
+  template of a function definition. The template looks like this:
+
+  #+begin_src emacs-lisp
+    (defun name-of-function (argument-list)
+      "documentation..."
+      (interactive-expression...)
+      body)
+  #+end_src
+
+- Here is how the function works: the name of the function is
+  ~mark-whole-buffer~; it is followed by an empty argument list,
+  '~()~', which means that the function does not require
+  arguments. The documentation comes next.
+
+- The next line is an ~(interactive)~ expression that tells Emacs that
+  the function will be used interactively.  These details are similar
+  to the ~simplified-begining-of-buffer~ function described in the
+  previous section.
+
+*** Body of ~mark-whole-buffer~
+
+- The body of the ~mark-whole-buffer~ function consist of three lines of code:
+
+  #+begin_src emacs-lisp
+    (push-mark (point))
+    (push-mark (point-max) nil t)
+    (goto-char (point-min))
+  #+end_src
+
+- The first of these line is the expression, ~(push-mark (point))~.
+
+- The line does not exactly the same job as the first line of the body
+  of the ~simplified-beginning-of-buffer~ function, which is written
+  ~(push-mark)~.  In both cases, the Lisp interpreter sets a /mark/ at
+  the current position of the cursor.
+
+- I don't know why the expression in ~mark-whole-buffer~ is written
+  ~(push-mark (point))~ and the expression in ~beginning-of-buffer~ is
+  written ~(push-mark)~.  Perhaps whoever wrote the code did not know
+  that the argument for ~push-mark~ are optional and that if
+  ~push-mark~ is not passed an argument, the function automatically
+  sets mark at the location of point by default.  Or perhaps the
+  expression was written so as to parallel the structure of the next
+  line.  In any case, the line cause Emacs to determine the position
+  of point and set a mark there.
+
+- In earlier version of GNU Emacs, the next line of
+  ~mark-whole-buffer~ was ~(push-mark (point-max))~.  This expression
+  sets a mark at the point in the buffer that has the highest number.
+  This will be the end of the buffer (or, if the buffer is narrowed,
+  the end of the accessible portion of the buffer. See Narrowing and
+  Widening, for more about narrowing.).  After this mark has been set,
+  the previous mark, the one set at point, is no longer set, but Emacs
+  remembers its position, just all other recent marks are always
+  remembered.  This means that you can, if you wish, go back to that
+  position by typing ~C-u C-SPC~ twice.
+
+ - In GNU Emacs 22, the ~(point-max)~ is slightly more
+   complicated. The line reads
+
+   #+begin_src emacs-lisp
+     (push-mark (point-max) nil t)
+   #+end_src
+
+- The expression works nearly the same as before.  It sets a mark at
+  the highest numbered place in the buffer that it can.  However, in
+  this version, ~push-mark~ has two additional arguments.  The second
+  argument to ~push-mark~ is ~nil~.  This tells the function it
+  /should/ display a message that says "Mark set" when it pushes the
+  mark.  The third arguments is ~t~.  This tells ~push-mark~ to
+  activate the mark when Transient Mark mode is turned on.  Transient
+  Mode highlights the currently active region.  It is often turned
+  off.
+
+- Finally, the last line of the function ~(goto-char (point-min))~.
+  This written exactly the same way as it is written in
+  ~beginning-of-buffer~.  The expression moves the cursor to the
+  minimum point in the buffer, that is, to the beginning of the buffer
+  (or to the beginning of the accessible portion of the buffer).  As a
+  result of this, point is placed at the beginning of the buffer and
+  mark is set at the end of the buffer.  The whole buffer is,
+  therefore, the region.
