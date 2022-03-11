@@ -3287,3 +3287,432 @@ Here is a brief summary of the various functions discussed in this chapter.
 - ~get-buffer-create~, ~get-buffer~ Find a named buffer or create one
   if a buffer of that name does not exist.  The ~get-buffer~ function
   returns ~nil~ if the named buffer does not exists.
+
+
+* A Few More Complex Functions
+
+- In this chapter, we build on what we have learned in previous
+  chapters by looking at more complex functions.  The ~copy-to-buffer~
+  function illustrates use of two ~save-excursion~ expressions in one
+  definition, while the ~insert-buffer~ function illustrates use of an
+  asterisk in an ~interactive~ expression, use of ~or~, and the
+  important distinction between a name and the object to which the
+  name refers,
+
+    - [[The Definition of ~copy-to-buffer~][copy-to-buffer]]             With ~set-buffer~, ~get-buffer-create~.
+
+    - [[The definition of ~insert-buffer~][insert-buffer]]               Read-only, and with ~or~.
+
+    - [[][beginning-of-buffer]] Shows ~goto-char~, ~point-min~, and ~Push-mark~.
+
+    - [[][Second buffer Related Review]]
+
+** The Definition of ~copy-to-buffer~
+
+- After understanding how ~append-to-buffer~ to works, it easy to
+  understand ~copy-to-buffer~.  This function copies text into a
+  buffer, but instead of adding to the second buffer, it replaces all
+  the previous text in the second buffer.
+
+- The body of ~copy-to-buffer~ looks like this,
+
+  #+begin_src emacs-lisp
+    ...
+    (interactive "BCopy to buffer: \nr")
+    (let (oldbuf (current-buffer)))
+    (with-current-buffer (get-buffer-create buffer)
+      (barf-if-buffer-read-only)
+      (erase-buffer)
+      (save-excursion
+        (insert-buffer-substrinh oldbuf start end)))
+  #+end_src
+
+  - The ~copy-to-buffer~ function has a simpler ~interactive~
+    expression than ~append-to-buffer~.
+
+  - The definition then says
+
+    #+begin_src emacs-lisp
+      (with-current-buffer (get-buffser-create buffer) ...
+    #+end_src
+
+   - First, look at the earliest inner expression; that is evaluated
+     first. That expression start with ~get-buffer-create buffer~.
+     The function tells computer to use the buffer with the name
+     specified as the one to which you are copying, or if such a
+     buffer does not exist, to create it.  Then, the
+     ~with-current-buffer~ function evaluates its body with that
+     buffer temporarily current.
+
+   - This demonstrates another way to shift the computer's attention
+     but not the user's.  The ~append-to-buffer~ function showed how
+     to do the same with ~save-excursion~ and ~set-buffer~,
+     ~with-current~buffer~ is a newer, and arguably easier, mechanism.
+
+   - The ~barf-if-buffer-read-only~ function sends you an error
+     message saying the buffer is read-only if you cannot modify it.
+
+   - The next line has the ~erase-buffer~ function as its sole
+     contents.  That function erase the buffer.
+
+   - Finally, the last tow line contain the ~save-excursion~
+     expression with ~insert-buffer-substring~ as its body.  The
+     ~insert-buffer-substring~ expression copies the text from the
+     buffer you are in (and you have not seen the computer shift its
+     attention, so you don't know that the buffer is now called
+     ~oldbuf~).
+
+   - Incidentally, this is what is meant by "replacement".  To replace
+     text, Emacs erase the previous text and insert new text.
+
+   - In outline, the body of ~copy-to-buffer~ looks like this:
+
+     #+begin_src emacs-lisp
+       (let (bind-oldbuf-to-value-of-current-buffer)
+         (with-the-buffer-you-are-copying-to
+          (but-do-not-erase-or-copy-to-a-read-only-buffer)
+          (erase-buffer)
+          (save-excursion
+            insert-substring-from-oldbuf-into-buffer)
+     #+end_src
+
+** The definition of ~insert-buffer~
+
+- ~insert-buffer~ is yet another /buffer-related function/.  This
+  command copies another buffer /into/ the current buffer.  It is the
+  /reverse/ of ~append-to-buffer~ or ~copy-to-buffer~, since they copy
+  a region of text /from/ the current buffer to another buffer.
+
+- Here is discussion based on the original code.  The code was
+  simplified in 2003 and is harder to understand.
+
+- See [[][New Body for ~insert-buffer~]], to see a discussion of the
+  new body.
+
+- In addition, this code illustrates the use of ~interactive~ with a
+  buffer that might be /read-only/ and the important distinction
+  between the name of an object and the object actually referred to.
+
+- [[The Code for ~insert-code~][insert-buffer code]]
+
+- [[The Interactive Expression in ~insert-buffer~][insert-buffer interactive]]              When you can read, but not write.
+
+- [[The Body of the ~insert~buffer~ Function][insert-buffer body]]      The body has an ~or~ and a ~let~.
+
+- [[~insert-buffer- with an ~if~ Instead of an ~or~][if & or]]                    Using an ~if~ instead of an ~or~.
+
+- [[The ~or~ in the Body][Insert or]]                          How the ~or~ expression works.
+
+- [[The ~let~ Expression in ~insert-buffer~][Insert let]]     Two ~save-excursion~ expression.
+
+- [[New Body for ~insert-buffer][New insert-buffer]]
+
+*** The Code for ~insert-code~
+
+- Here is the earlier code:
+
+  #+begin_src emacs-lisp
+    (defun insert-buffer (buffer)
+      "Insert after point the contents of Buffer.
+        Puts mark after the inserted text.
+        BUFFER may be a buffer or a buffer name."
+      (interactive "*bInsert buffer: ")
+
+      (or (bufferp buffer)
+          (setq buffer (get-buffer buffer)))
+      (let (start end newmark)
+        (save-excursion
+          (save-excursion
+            (set-buffer buffer)
+            (setq start (point-min) end (point-max)))
+          (insert-buffer-substring buffer start end)
+          (setq newwark (point)))
+        (push-mark newmark)))
+  #+end_src
+
+- As with other function definitions, you can use a template to see an
+  outline of the function:
+
+  #+begin_src emacs-lisp
+    (defun insert-buffer (buffer)
+      "documentation.."
+      (interactive "*bInsert buffer: ")
+      body..)
+  #+end_src
+
+*** The Interactive Expression in ~insert-buffer~
+
+- In ~insert-buffer~, the argument to the ~interactive~ declaration
+  has two parts, an asterisk, '~*~', and '~bInsert buffer: "~'.
+
+  - [[A Read-only Buffer][Read-only buffer]]         When a buffer cannot be modified.
+
+  - [['~b~' in an Interactive Expression][b for interactive]]     An existing buffer or else its name.
+
+**** A Read-only Buffer
+
+- The asterisk is for the situation when the current buffer is
+  read-only buffer--a buffer that cannot be modified.  If
+  ~insert-buffer~ is called when the current buffer is read-only, a
+  message to this effect is printed in the echo area and the terminal
+  may beep or blink at you; you will not be permitted to insert
+  anything into current buffer.  The asterisk does not need to be
+  followed by a newline to separate it from the next argument.
+
+**** '~b~' in an Interactive Expression
+
+- The body of the ~insert-buffer~ function has two major parts: an
+  ~or~ expression and a ~let~ expression.  The purpose of the ~or~
+  expression is to ensure that the argument ~buffer~ is bound to a
+  buffer and not just the name of a buffer.  The body of the ~let~
+  expression contains the code which copies the other buffer into the
+  current buffer.
+
+- In outline, the two expressions fit into the ~insert-buffer~
+  function like this:
+
+  #+begin_src emacs-lisp
+    (defun insert-buffer (buffer)
+      "documentation.."
+      (interactive "*bInsert buffer: ")
+      (or ...
+          ...
+          (let (varlist)
+            body-of-let... )
+  #+end_src
+
+- To understand how the ~or~ expression ensures that the argument
+  ~buffer~ is bound to a buffer and not then name of a buffer, it
+  first necessary to understand the ~or~ function.
+
+- Before doing this, let me rewrite this part of the function using
+  ~if~ so that you can see what is done in a manner that will be
+  familiar.
+
+*** The Body of the ~insert~buffer~ Function
+
+- The body of the ~insert-buffer~ function has two major parts: an
+  ~or~ and a ~let~ expression.  The purpose of the ~or~ expression is
+  to unsure that the argument ~buffer~ is bound to a buffer and not
+  just the name of the buffer.  The body of the ~let~ expression
+  contains the code which copies the other buffer into the current
+  buffer.
+
+- In outline, the two expression fit into the ~insert-buffer~ function like this:
+
+  #+begin_src emacs-lisp
+    (defun insert-buffer (buffer)
+      "documentation..."
+      (interactive "*bInsert buffer: ")
+      (or ...
+          ...
+          (let (varlist)
+            body-of-let...)
+  #+end_src
+
+- To understand how the ~or~ expression ensures that the argument
+  ~buffer~ is bound to a buffer and not the name of a buffer, it is
+  first necessary to understand the ~or~ function.
+
+- Before doing this, let me rewrite Thai part of the function using
+  ~if~ so that oi can see what is done in a manner that will be
+  familiar.
+
+*** ~insert-buffer- with an ~if~ Instead of an ~or~
+
+- The job to be done is to make sure the value of ~buffer~ is a buffer
+  itself and not the name of a buffer.  If the value is the name, then
+  the buffer itself must be got.A
+
+- You can imagine yourself at a conference where an /usher/ is
+  wandering around holding a list with your name on it and looking for
+  you: the usher is bound to your name, not to you; but when the usher
+  finds you and takes your arm, the usher becomes bound to you.
+
+- In Lisp, you might describe this situation like this:
+
+  #+begin_src emacs-lisp
+    (if (not (holding-on-to-guest))
+        (find-and-take-arm-of-guest))
+  #+end_src
+
+- We want to do the same thing with a buffer--if we do not have the
+  buffer itself, we want to get it,
+
+- Using a predicate called ~bufferp~ that tells us whether we have a
+  buffer (rather than its name), we can write the code like this:
+
+  #+begin_src emacs-lisp
+    (if (not (bufferp buffer))                         ; if-part
+        (setq buffer buffer (get-buffer buffer)))       ; then-part
+  #+end_src
+
+- Here, the true-or-false-test of the ~if~ expression is ~(mot
+  (bufferp buffer))~; and the then-part is the expression ~(setq
+  buffer (get-buffer buffer))~
+
+- In the test, the function ~bufferp~ returns true if its argument is
+  a buffer--but if its argument is the name of the buffer.  (The last
+  character of the function name ~bufferp~ is the character '~p~', as
+  we saw earlier, such use of '~p~' is a convention that indicates the
+  function is a /predicate/, which is a term that means that the
+  function will determine whether some property is true or false.  See
+  [Using the Wrong Type Object as an Argument].
+
+- The function ~not~ precedes the expression ~(bufferp buffer)~, so
+  the true-or-false-test looks like this:
+
+  #+begin_src emacs-lisp
+    (not (bufferp buffer))
+  #+end_src
+
+- ~not~ is a function that returns true if its argument is false and
+  false if its argument is true.  So if ~(bufferp buffer)~ returns
+  true, the ~not~ expression returns false and vice versa.
+
+- Using this test, the ~if~ expression works as follows: when the
+  value of the variable ~buffer~ is actually a buffer than its name,
+  the true~-or-false-test returns false and the ~if~ expression does
+  not evaluate the then-part.  This is fine, since we do not need to
+  do anything to the variable ~buffer~ if it really is a buffer.
+
+- On the other hand, when the value of ~buffer~ is not a buffer
+  itself, but the name of a buffer, the true-or-false-test returns
+  true, and the then-part of the expression is evaluated.  In this
+  case, the then-part is ~(setq buffer (get-buffer buffer))~.  This
+  expression uses the ~get-buffer~ function to return an actual buffer
+  itself, given its name.  The ~setq~ then sets the variable ~buffer~
+  to the value of the buffer itself, replacing its previous value
+  (which was the name of the buffer).
+
+*** The ~or~ in the Body
+
+- The purpose of the ~or~ expression in the ~insert-buffer~ function
+  is to ensure that the argument ~buffer~ is bound to a buffer and not
+  just to the name of a buffer.  The previous section shows how the
+  job could have been done using ~if~ expression.  However, the
+  ~insert-buffer~ function actually use ~or~.  To understand this, it
+  is necessary to understand how ~or~ works.
+
+- The ~or~ expression looks like this:
+
+  #+begin_src emacs-lisp
+    (or (bufferp buffer)
+    (setq buffer (get-buffer buffer)))
+  #+end_src
+
+- The first argument to ~or~ is the expression ~(bufferp buffer)~.
+  This expression returns true (a non-~nil~ value) if the buffer is
+  actually a buffer, and not just the name of a buffer.  In the ~or~
+  expression returns this true value and does not evaluate the
+  expression--and this is fine with use since we do not want to do
+  anything to the value f ~buffer~ if it really is a buffer.
+
+- On the other hand, if the value of ~(bufferp buffer)~ is ~nil~,
+  which it will be if the value of ~buffer~ is the name of a buffer,
+  the Lisp interpreter evaluates the next element of the ~or~
+  expression.  This is the expression ~(setq buffer (get-buffer
+  buffer))~.  This expression returns a non-~nil~ value, which is the
+  value to which it sets the variable ~buffer~--and this value is a
+  buffer itself, not the name of a buffer.
+
+- The result of all this is that the symbol ~buffer~ is always bound
+  to a buffer itself rather than to the name of a buffer.  All this is
+  necessary because the ~set-buffer~ function in a following line
+  only works with a buffer itself, not with the name to a buffer.
+
+- Incidentally, using ~or~, the situation with the usher would be
+  written like this:
+
+ #+begin_src emacs-lisp
+   (or (holding-on-to-guest) (find-and-take-arm-of-guest))
+ #+end_src
+
+*** The ~let~ Expression in ~insert-buffer~
+
+- After ensuring that the variable ~buffer~ refers to a buffer itself
+  and not just to the name of a buffer, the ~insert-buffer~ function
+  continuous with a ~let~ expression.  This specifies three local
+  variables of the same name in Emacs until the end of the ~let~.
+
+- The body of the ~let~ contains two ~save-excursion~ expressions.
+  First we will look at the inner ~save-excursion~ expression in
+  detail.  The expression looks like this:
+
+  #+begin_src emacs-lisp
+    (save-excursion
+      (inner-save-excursion-expression
+       (go-to-new-buffer-and-set-start-and-end)
+       (insert-buffer-substring buffer start end)
+       (setq newmark (point)))
+  #+end_src
+
+- The ~insert-buffer-substring~ function copies the text /into/ the
+  current buffer /from/ the region indicated by ~start~ and ~end~ in
+  ~buffer~.  Since the whole of the second buffer lies between ~start~
+  and ~end~, the whole of the second buffer is copied into the buffer
+  you are editing.  Next, the value of point, which will be at the end
+  of the inserted text, is recorded in the variable ~newmark~.
+
+- After the body of the outer ~save-excursion~ is evaluated, point is
+  relocated to its original place.
+
+- However, it is convenient to locate a mark at the end of the newly
+  inserted text and locate point at the beginning.  The ~newmar~
+  variable records the end of the inserted text.  In the last line of
+  the ~let~ expression, the ~(push-mark newmark)~ expression function
+  sets a mark to this location.  (The previous location of the mark is
+  still accessible; it is recorded on the mark ring, and you can go
+  back to it with ~C-u SPC~.)  Meanwhile, point is located at the
+  beginning of the inserted text, which is where it was before you
+  called the insert function, the position of which was saved by the
+  first ~save-excursion~.
+
+- The whole ~let~ expression look like this:
+  #+begin_src emacs-lisp
+    (let (start end newmark)
+      (save-excursion
+        (save-excursion
+          (set-buffer buffer)
+          (setq start (point-min) end (point-max)))
+        (insert-buffer-substring buffer start end)
+        (setq newmark (point)))
+      (push-mark newmark))
+  #+end_src
+
+- Like the ~append-to-buffer~ function, the ~insert-buffer~ function
+  uses ~let~, ~save-excursion~ and ~set-buffer~.  In addition, the
+  function illustrates one way to use ~or~.  All the function are
+  building blocks that we will find and use again and again.
+
+*** New Body for ~insert-buffer
+
+- The body in the GNU Emacs 22 version is more confusing that the
+  original.
+
+-It consist of two expressions,
+
+  #+begin_src emacs-lisp
+    (push-mark
+     (save-excursion
+       (insert-buffer-substring (get-buffer buffer))
+       (point)))
+
+    nil
+  #+end_src
+
+  except, and this is what confuses novices, very important work is
+  done inside the ~push-mark~ expression.
+
+- The ~get-buffer~ function returns a buffer with the name provided.
+  You will note that the function is /not/ called ~get-buffer-create~;
+  it does not create a buffer if one does not already exist.  The
+  buffer returned by ~get-buffer~, an existing buffer, is passed to
+  ~insert-buffer-substring~, which inserts the whole of the buffer
+  (since you did not specify anything else).
+
+- The location into which the buffer is inserted is recorded by
+  ~push-mark~.  Then the function returns ~nil~, the value of its last
+  command.  Put another way, the ~insert-buffer~ function exists only
+  to produce a side effect, inserting another buffer, not return any
+  value.
