@@ -3303,9 +3303,9 @@ Here is a brief summary of the various functions discussed in this chapter.
 
     - [[The definition of ~insert-buffer~][insert-buffer]]               Read-only, and with ~or~.
 
-    - [[][beginning-of-buffer]] Shows ~goto-char~, ~point-min~, and ~Push-mark~.
+    - [[Complete Definition of ~beginning-of-buffer~][beginning-of-buffer]]   Shows ~goto-char~, ~point-min~, and ~Push-mark~.
 
-    - [[][Second buffer Related Review]]
+    - [[Review][Second buffer Related Review]]
 
 ** The Definition of ~copy-to-buffer~
 
@@ -3716,3 +3716,331 @@ Here is a brief summary of the various functions discussed in this chapter.
   command.  Put another way, the ~insert-buffer~ function exists only
   to produce a side effect, inserting another buffer, not return any
   value.
+
+** Complete Definition of ~beginning-of-buffer~
+
+- The basic structure of the ~beginning-of-buffer~ function has
+  already been discussed.  (See [[A Simplified ~beginning-of-buffer~
+  Definiton]].)  This section describes the complex part of the
+  definition.
+
+- As previous described, when invoked without an argument,
+  ~beginning-of-buffer~ moves the cursor to the beginning of the
+  buffer (in truth, the beginning of the accessible portion of the
+  buffer), leaving the mark at the previous position.  However, when
+  the command is invoked with a number between one and ten, the
+  function considered that number to be a fraction of the length of
+  the buffer, measured in tenths and Emacs moves the cursor that
+  fraction of the way from the beginning of the buffer.  Thus, you can
+  either call this function with the key command ~M-<~, which will
+  move the cursor to the beginning of the buffer, or with a key
+  command such as ~C-u 7 M-<~ which will move the cursor at a point
+  70% of the way through the buffer.  If a number bigger than then us
+  used for the argument, it moves to the end of the buffer.
+
+- The ~beginning-of-buffer~ function can be called with or without an
+  argument.  The use of the argument is /optional/.
+
+  - [[Optional Arguments][Optional Arguments]]
+
+  - [[~beginning-of-buffer~ with an Argument][beginning-of-buffer opt arg]]       Example with optional argument.
+
+  - [[][beginning-of-buffer complete]]
+
+*** Optional Arguments
+
+- Unless told otherwise, Lisp expects that a function an argument in
+  its function definition will be called with a value for that
+  argument.  If that does not happen, you get error and a message that
+  says '~Wrong number of arguments~'.
+
+- However, optional arguments are feature of Lisp: a particular
+  /keyword/ is used to tell the Lisp interpreter that an argument is
+  optional.  The keyword is ~&optional~.  (The '~&~' in front of
+  '~optional~' is part of the keyword.)  In a function definition, if
+  an argument follows the keyword ~&optional~, no value need be passed
+  to that argument when the function is called.
+
+- The first line of the function definition of ~beginning-of-buffer~
+  therefore looks like this:
+
+  #+begin_src emacs-lisp
+- - (defun beginning-of-buffer (&optional arg)
+  #+end_src
+
+- In outline, the whole function looks like this:
+
+  #+begin_src emacs-lisp
+    (defun beginning-of-buffer (&optional arg)
+      "documentation..."
+      (interactive "P")
+      (or (is-the-argument-a-cons-cell arg)
+          (and are-both-transient-mark-mode-and-mark-active-true)
+          (push-mark))
+      (let (deterimine-size-and-set-it)
+        (goto-char
+         (if-there-is-an-agument
+          figure-out-where-to-go
+          else-go-told
+          (point-min))))
+      do-nicety
+  #+end_src
+
+- The function is similar to the ~simplified-beginning-of-buffer~
+  function except that the ~interactive~ expression has "~p~" as an
+  argument and the ~goto-char~ function is followed by an if-then-else
+  expression that figure out where to put the cursor if there is an
+  argument that is not a cons cell.
+
+- The ~"P"~ in the ~interactive~ expression tells Emacs to pass a
+  /prefix argument/, if there is one, to then function in raw from.  A
+  prefix argument is made by typing the ~META~ key followed by a
+  number, or by typing ~C-u~ and then a number.  (If you type don't
+  type a number, ~C-u~ defaults to a cons cell with a 4.  A lowercase
+  ~"p" in the ~interactive~ expression causes the function to convert
+  a prefix arg to number.)
+
+- The true-or-false-test of the ~if~ expression looks complex, but it
+  is not; it checks whether ~arg~ has a value that is not ~nil~ and
+  whether it is a cons sell.  (That is what ~constp~ does; it checks
+  whether its argument is a cons cell.)  If ~arg~ has a value that is
+  not ~nil~ (and is not a cons cell), which will be the case if
+  ~beginning-of-buffer~ is called with a numeric argument, then this
+  true-or-false-test will return true and then-part of the ~if~
+  expression will be evaluated.  On the other had, if
+  ~beginning-of-buffer~ is not called with an argument, the value
+  ~arg~ will be ~nil~ and the else-part of the ~if~ expression will be
+  evaluated.  The else-part is simply ~point-min~, and when this is
+  the outcome, the whole ~goto-char~ expression is ~(goto-char
+  (point-min))~, which is how we the ~beginning-of-buffer~ function in
+  its simplified form.
+
+*** ~beginning-of-buffer~ with an Argument
+
+- When ~beginning-of-buffer~ is called with an argument, an expression
+  is evaluated which calculates what value to pass to ~goto-char~.
+  This expression is rather complicated at first sight.  It includes
+  an inner ~if~ expression and much arithmetic.  It look like this:
+
+  #+begin_src emacs-lisp
+    (if (> (buffer-size) 10000)
+        ;; Avoid overflow for large buffer sizes!
+        (* (prefix-numeric-value arg)
+           (/ size 10)
+           (/
+            (+ 100%
+               (* size (prefix-numeric-value arg))) 10)))
+  #+end_src
+
+  - [[Disentangle ~beginning-of-buffer~][Disentangle beginning-of-buffer]]
+
+  - [[What happen in a large buffer][Large buffer case]]
+
+  - [[What happen in a small buffer][Small buffer case]]
+
+**** Disentangle ~beginning-of-buffer~
+
+- Like other complex-looking expression, the conditional expression
+  within ~beginning-of-buffer~ can be disentangled by looking at it as
+  parts of a template, in this case, the template for an if-then-else
+  expression.  In skeletal form, the expression looks like this:
+
+  #+begin_src emacs-lisp
+    (if (buffer-is-large
+         divide-buffer-size-by-10-and-multiply-by-arg
+      else-use-alternate-calculation
+  #+end_src
+
+- The true-or-false-test of this inner ~if~ expression checks the size
+  of the buffer.  The reason for this is that the old version 18 Emacs
+  used numbers that are no bigger than eighth million or so and in the
+  computation that followed, the programmer feared that Emacs might
+  try to use over-large numbers if the buffer were large.  The term
+  "overflow", mentioned in the comment, means numbers that are over
+  large.  More recent version of Emacs use large numbers, but this
+  code has not been touched, if only because people now look at buffer
+  that are far, far larger than ever before.
+
+- there are two cases: if the buffer is large and if it is not.
+
+**** What happen in a large buffer
+
+- In ~beginning-of-buffer~, the inner ~if~ expression test whether the
+  size of the buffer is greater than 10,000 characters.  To do this,
+  it uses the ~>~ function and the computation of ~size~ that comes
+  from the let expression.
+
+- In the old days, the function ~buffer-size~ was used.  Not only was
+  the function called several times, it gave the size of the whole
+  buffer, not the accessible part.  The computation makes much more
+  sense when it handles just the accessible part.  (See [[][Narrowing
+  and Widening]], for more information on focusing attention to an
+  accessible part.)
+
+- the line looks like this:
+  #+begin_src emacs-lisp
+    (if (> size 10000)
+  #+end_src
+
+- When the buffer is large is large, the then-part of the ~if~
+  expression is evaluated.  It reads like this (after formatting for
+  easy reading):
+
+  #+begin_src emacs-lisp
+    (*
+     (prefix-numeric-value arg)
+     (/ size 10))
+  #+end_src
+
+  this expression is multiplication, which with two arguments to the
+  function ~*~
+
+- The first argument is ~(prefix-numeric-value arg)~.  When ~"p"~ is
+  used as the argument for ~interactive~, the value passed to the
+  function as its argument is passed a ~raw prefix argument~, and not
+  a number.  (It is a number list.) To perform the arithmetic, the
+  conversion is necessary, and ~prefix-numeric-value~ does the job.
+
+- The second argument is ~(/ size 10)~.  This expression divides the
+  numeric value by ten--the numeric value of the size of the
+  accessible portion of the buffer.  This produces a number that tells
+  how many characters make up one tenth of the buffer size.  (in Lisp,
+  ~/~ is used for division, just as ~*~ is used for multiplication.)
+
+- In the multiplication expression as a whole, this amount is
+  multiplied by the value of the prefix argument--the multiplication
+  looks like this:
+
+  #+begin_src emacs-lisp
+    (* numeric-value-of-prefix-arg
+       number-of-characters-in-one-tenth-of-the-accessible-buffer)
+  #+end_src
+
+- If, for example, the prefix argument is ~'7~', the one-tenth value
+  will be multiplied by 7 to give a position 70% of the way through.
+
+- The result of all this is that the accessible portion of the buffer
+  is large, the ~goto-char~ reads like this:
+
+  #+begin_src emacs-lisp
+    (goto-char (* (prefix-numeric-value arg)
+                  (/ size 10)))
+  #+end_src
+
+  This put the cursor where we want it.
+
+**** What happen in a small buffer
+
+- Here  is the complete text of the ~beginning-of-buffer~ function:
+
+
+  #+begin_src emacs-lisp
+    (defun beginning-of-buffer (&optional arg)
+      "Move point to the beginning of the buffer;
+    leave mark atprevious position.
+    with \\[universal-argument] prefix,
+    do not set mark at previous position.  With numeric org N,
+    put point N/10 of the way from the beginning
+
+    If the buffer is narrowed,
+    this command uses the beginning and
+    size of the accessible part of the buffer.
+
+    Don't use tis command in Lisp program!
+    \(go-char (point-min)) is faster
+    and avoids clobbering the mark."
+      (interactive "P")
+      (or (consp arg)
+          (and transient-mark-mode-mark-active)
+          (push-mark))
+      (let ((size (- (point-max) (point-min)))
+            (goto-char (if (and arg (not (consp arg)))
+                           (+ (point-min)
+                              (if (> size 10000)
+                                  ;; avoid oveflow for large buffer sizes!
+                                  (* (prefix-numeric-value-org)
+                                     (/ size 10))
+                                (/ (+ 10 (* size (prefix-numeric-value arg)))
+                                   10)))
+                         (point-min))))
+        (if (and arg (not (consp arg))) (forward-line 1)))
+    #+end_src
+
+- Except for two small points, the previous discussion shows how this
+  function works.  The first point deals with a detail in the
+  documentation string, and the second point concerns the last line of
+  the function.
+
+- In the documentation string, there is reference to an expression:
+
+  #+begin_src emacs-lisp
+    \\[universal argument]
+  #+end_src
+
+- A '~\\~\ is used before the first square bracket of this expression.
+  This '~\\~' tells the lisp Interpreter to substitute whatever key is
+  currently bound to the '~[...]~'.  In this case of
+  ~universal-argument~, that is usually ~C-u~, but it might be
+  different.  (See [[][Tips for Documentation Strings]] in the GNU
+  Emacs Lisp Reference Manual, for more information.)
+
+- Finally, the last line of the ~beginning-of-buffer~ commands says to
+  move point to the beginning of the next line if the command is
+  invoked with an argument:
+
+  #+begin_src emacs-lisp
+    (if (and arg (not (consp arg))) (forward-line 1))
+  #+end_src
+
+- This puts the cursor at the beginning of the first line after the
+  appropriate tenths position in the buffer.  This is flourish that
+  means that the cursor is always located /at least/ the requested
+  tenths of the way through the buffer, which is a nicety that is,
+  perhaps, not necessary, but which, if it did not occur, would be
+  sure to draw complaints.  (The ~(not (consp arg))~ portion is so
+  that if you specify the command with a ~C-u~, but without a number,
+  that is to say, if the raw prefix argument is simply, a cons cell,
+  the command does not put your at the beginning of the second line.)
+
+** Review
+
+- ~or~
+
+  evaluates each argument in sequence, and return the value of the
+  first argument that is nor ~nil~; if none return a value that is not
+  ~nil~, return ~nil~.  In brief, return the first value of the
+  arguments; return a true value of one ~or~ any of the others are
+  true.
+
+- ~and~
+
+  Evaluate each argument in sequence, and if any are ~nil~, return
+  ~nil~; if none are ~nil~, return the value of the last argument.  In
+  brief, return a true value only if all the arguments are true;
+  return a true value if one ~nad~ of the others is true.
+
+- ~&optional~
+
+  A keyword used to indicated that an argument to a function
+  definitions is optional; this meas that the function can be
+  evaluated without the argument, if desired.
+
+- ~prefix-numeric-value~
+
+  Convert the raw prefix argument produced by ~(interactive "P")~ to a numeric value.
+
+- ~forward-line~
+
+  Move point forward to the beginning of the next line, or if the
+  argument is greater than one, forward that many lines.  If it can't
+  move as far forward as it supposed to, ~forward-line~ goes forward
+  as far it can and then returns a count of the number of additional
+  lines it was supposed to move but couldn't.
+
+- ~erase-buffer~
+
+  Delete the entire contents of the current buffer.
+
+- ~bufferp~
+
+  Returns ~t~ if its argument is a buffer; otherwise return ~nil~.
