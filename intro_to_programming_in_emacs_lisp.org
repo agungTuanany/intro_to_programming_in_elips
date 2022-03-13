@@ -4044,3 +4044,176 @@ Here is a brief summary of the various functions discussed in this chapter.
 - ~bufferp~
 
   Returns ~t~ if its argument is a buffer; otherwise return ~nil~.
+
+
+* The Advantage of Narrowing
+
+- Narrowing is a feature of Emacs that makes it possible for you to
+  focus on a specific part of buffer, and work without accidentally
+  changing other parts.  Narrowing is normally disabled since it can
+  confuse novices.
+
+  - [[The Advantages of Narrowing][Narrowing advantages]]                     The advantages of narrowing.
+
+  - [[The ~save-restriction~ Special Form][save-restriction]]       The ~save-restriction~ special form.
+
+  - [[~what-line~][what-line]]                                The number of the line that point is on.
+
+** The Advantages of Narrowing
+
+- With narrowing, the rest of a buffer is made invisible, as if
+  weren't there.  This is an advantage if, for example, you want to
+  replace a word in one part of a buffer but not in another; you
+  narrow to the part you want and the replacement is carried out only
+  in that section, not in the rest of the buffer.  Searches will only
+  work within a narrowed region, not outside of one, so if you are
+  fixing a part of a document, you can keep yourself from accidentally
+  finding parts you do not need to fix by narrowing just to the region
+  you want. (the key binding for ~narrow-to-region~ is ~C-x n n~.)
+
+- However, narrowing does make the rest of the buffer invisible, which
+  can scare people who inadvertently invoke narrowing and think they
+  deleted a part of their file.  Moreover, the ~undo~ command (which
+  is usually bound to ~C-x u) does not turn off narrowing (nor should
+  it), so people can become desperate if they do not know that they
+  can return the rest of a buffer to visibility with the ~widen~
+  command.  (The key binding for ~widen~ is ~C-x n w~.)
+
+- Narrowing is just as useful to the lisp interpreter as to human.
+  Often, an Emacs Lisp function is designed to work on just part of a
+  buffer, it has any narrowing and when it has finished its job,
+  restores the narrowing to what it was. On the other hand, the
+  ~count-lines~ function uses narrowing to restrict uses narrowing to
+  restrict it self to just that portion of the buffer in which it is
+  interested and then restores the previous situation.
+
+** The ~save-restriction~ Special Form
+
+- In Emacs Lisp, you can use the ~save-restriction~, special form to
+  keep track whatever narrowing is in effect, if any.  When the Lisp
+  interpreter meets with ~save-restriction~, it executes the code in
+  the body of the ~save-restriction~ expression, and then undoes any
+  changes to narrowing that the code caused.  If, for example, the
+  buffer is narrowed and the code that follows ~save-restriction~ gets
+  rid of the narrowing, ~save-restriction~ gets rid of the narrowing,
+  ~save-restriction~ return the buffer to its narrowed region
+  afterwards.  In the ~what-line~ command, any narrowing the buffer
+  may have is undone by the ~widen~ command that immediately follows
+  the ~save-restriction~ command.  Any original narrowing is restored
+  just before the completion of the function.
+
+- The template for a ~save-restriction~ expression is simple:
+
+  #+begin_src emacs-lisp
+    (save-restriction
+      body...)
+  #+end_src
+
+- The body of the ~save-restriction~ is one or more expression that
+  will be evaluated in sequence by the Lisp interpreter.
+
+- Finally, a point to note: when you use both ~save-excursion~ and
+  ~save-restriction~, one right after the other, you should use
+  ~save-excursion~ outermost.  If you write them in reverse order, you
+  may fail to record narrowing in the buffer to which Emacs switches
+  after calling ~save-excursion~.  Thus, when written together,
+  ~save-excursion~ and ~save-restriction~ should be written like this:
+
+  #+begin_src emacs-lisp
+    (save-excursion
+      (save-restriction
+        body...))
+  #+end_src
+
+- In other circumstances, when not to written together, the
+  ~save-excursion~ and ~save-restriction~ special form must be written
+  in the order appropriate to the function.
+
+- For example,
+
+  #+begin_src emacs-lisp
+    (save-restriction
+      (widen)
+      (save-excursion
+        body..))
+  #+end_src
+** ~what-line~
+
+- The ~what-line~ command tells you the number of the line in which
+  the cursor is located.  The function illustrate the use of the
+  ~save-restriction~ and ~save-excursion~ commands. Here is the
+  original text of the function:
+
+  #+begin_src emacs-lisp
+    (defun what-line ()
+      "Print the current line number (in the buffer) of point."
+      (interative)
+      (save-excursion
+        (beginning-of-line)
+        (message "Line %d"
+                 (1+ (count-lines 1 (point)))))
+  #+end_src
+
+- (In recent version of GNU Emacs, the ~what-line~ function has been
+  to tell you your line number in a narrowed buffer as well as your
+  line in a widened buffer.  The recent version is more complex than
+  version shown here.  If you fell adventurous, you might to look it
+  after figuring out how this version works.  You will probably need
+  to use ~C-h f (describe-function)~.  The newer version uses a
+  conditional to determine the buffer has been narrowed.
+
+- (Also, it uses ~line-number-at-pos~, which among other simple
+  expressions, such as ~(goto-char (point-min))~, moves point to the
+  beginning of the current line with ~(forward-line 0)~, rather than
+  ~beginning-of-line~.)
+
+- The ~what-line~ function as shown here has a documentation line and
+  is interactive, as you would expect.  The next two lines use the
+  function ~save-restriction~ and ~widen~.
+
+- The ~save-restriction~ special form notes whatever narrowing is an
+  effect, if any, in the current buffer and restores that narrowing
+  after code in the body of the ~save-restriction~ has been evaluated.
+
+- The call to ~widen~ is followed by ~save-excursion~, which saves the
+  location of the cursor (i.e of point(, and restores it after the
+  code in the body of the ~save-excursion~ uses the
+  ~beginning-of-line~ function to move point.
+
+- (Note that the ~(widen)~ expression comes between the
+  ~save-restriction~ and ~save-excursion~ special forms.  When you
+  write the two ~save- ...~ expression in sequence, write
+  ~save-excursion~ outermost.)
+
+- The last two lines of the ~what-line~ function are functions to
+  count the number of lines in the buffer and then print the number in
+  the echo area.
+
+  #+begin_src emacs-lisp
+    (message "Line %d"
+             (1+ (count-lines 1 (point)))))
+    #+end_src
+
+- The ~message~ function prints a one-line message at the bottom of
+  the Emacs screen.  The first argument is inside of quotation marks
+  and id printed as a string of characters.  However, it may contain a
+  '~%d~' prints the argument. '~%d~' prints as a decimal, so the
+  message will say something such as ~'line 243'~.
+
+- The number that is printed in place of the '~%d~' is computed by the
+  last line of the function:
+
+  #+begin_src emacs-lisp
+    (1 + (count-lines 11 (point)))
+  #+end_src
+
+- What this does count is count the lines from the first position of
+  the buffer, indicated by the ~1~, up to ~(point)~, and then add one
+  to that number.  (The ~1+~ function adds one to its argument.) We
+  add one to it because line 2 has only one line before it, and
+  ~count-lines~ counts only the lines /before/ the current line.
+
+- After ~count-lines~ has done its job, and the message has been
+  printed in the echo area, the ~save-excursion~ restore point to its
+  original position; and ~save-restriction~ restores the original
+  narrowing, if any.
