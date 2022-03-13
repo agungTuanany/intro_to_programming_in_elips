@@ -2857,7 +2857,7 @@ the size of a buffer and the location of point within it.
 
 - The next line is an ~(interactive)~ expression that tells Emacs that
   the function will be used interactively.  These details are similar
-  to the ~simplified-begining-of-buffer~ function described in the
+  to the ~simplified-beginnig-of-buffer~ function described in the
   previous section.
 
 *** Body of ~mark-whole-buffer~
@@ -3721,7 +3721,7 @@ Here is a brief summary of the various functions discussed in this chapter.
 
 - The basic structure of the ~beginning-of-buffer~ function has
   already been discussed.  (See [[A Simplified ~beginning-of-buffer~
-  Definiton]].)  This section describes the complex part of the
+  Definition]].)  This section describes the complex part of the
   definition.
 
 - As previous described, when invoked without an argument,

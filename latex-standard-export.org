@@ -50,7 +50,7 @@
 
 %#+LaTeX_HEADER: \lstset{language=[auto]lisp,basicstyle=\ttfamily,keywordstyle=\color{red}}
 
-#+LATEX_HEADER: \lstset{language=[auto]lisp,frame=tb, basicstyle=\small\sfffamily,numbers=left,numberstyle=\tiny,frame=tb,tabsize=4,columns=fixed,showstringspaces=false,showtabs=false,keepspaces,commentstyle=\color{gray}, keywordstyle=\color{red}}
+#+LATEX_HEADER: \lstset{language=[auto]lisp,frame=tb, basicstyle=\scriptsize\sfffamily,numbers=left,numberstyle=\tiny,frame=tb, linewidth=8cm, aboveskip=1em, tabsize=4,columns=fixed,showstringspaces=false,showtabs=false,keepspaces,commentstyle=\color{gray}, keywordstyle=\color{red}}
 
 % Section/subsection headings:
 
