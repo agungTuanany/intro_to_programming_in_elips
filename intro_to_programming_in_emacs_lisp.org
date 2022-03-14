@@ -85,6 +85,9 @@
 
 - <<<ceases>>> :bring or come to end
 
+- <<<esoteric>>> : intended for or likely to be understood by only a
+  small of people with specialized knowledge or interest.
+
 *** Notes
 
 - A list in Lisp consist of parentheses surrounding atoms separated by
@@ -4217,3 +4220,293 @@ Here is a brief summary of the various functions discussed in this chapter.
   printed in the echo area, the ~save-excursion~ restore point to its
   original position; and ~save-restriction~ restores the original
   narrowing, if any.
+
+
+* ~car~, ~cdr~, ~cons~: Fundamental Function
+
+- Lisp, ~car~, ~cdr~, and ~cons~ are fundamental functions.  The
+  ~cons~ function is used to construct lists, and the ~car~ and ~cdr~
+  functions are used to take them apart.
+
+- In the walk through of the ~copy-region-as-kill~ function, we will
+  see ~const~ as well as two variants on ~cdr~, namely, ~setcdr~ and
+  ~nthcdr~.  (See [[][Copy-region-as-kill]].)
+
+  - [[Strange Name][Strange Names]]       A historical aside: why the strange name?
+
+  - [[~car~ and ~cdr~][car & cdr]]           A function for extracting part of a list.
+
+  - [[~cons~][cons]]                Constructing a list.
+
+  - [[~nthcdr][nthcdr]]              Calling ~cdr~ repeatedly.
+
+  - [[][nth]]
+
+  - [[][setcar]]        Changing the first element of a list
+
+** Strange Name
+- The name of the ~cons~ function is not unreadable: it is not an
+  abbreviation of the word "construct".  The origins of the name for
+  ~car~ and ~cdr~ on the other hand, are esoteric: ~car~ is acronym
+  from the phrase "Contents of the Address part of the Register": and
+  ~cdr~ (pronounced "could-er") is an acronym from the phrase
+  "Contents of the Decrement part of the Register".  These phrases
+  refer to specific pieces of hardware on the early computer on which
+  the original Lisp was developed.  Besides being obsolete, the
+  phrases have been completely irrelevant for more 25 years to anyone
+  thinking about Lisp.  Nonetheless, although a few brave scholars
+  have begun to use more reasonable names for these functions, the old
+  term are still in use.  In particular, since the terms are used in
+  the Emacs lisp source code, we will use them in this introduction.
+
+** ~car~ and ~cdr~
+
+- The CAR of list is ,quite simply, the first item in the list.  Thus
+  CAR of the list ~(rose violet daisy buttercup)~ is ~route~.
+
+- If you reading this info in GNU Emacs, you can see this by
+  evaluating the following:
+
+  #+begin_src emacs-lisp
+    (car '(rose violet daisy buttercup))
+  #+end_src
+
+- After evaluating the expression, ~rose~ will appear in the echo area.
+
+- Clearly, a more reasonable names for the ~car~ function would be
+  ~first~ and this is often suggested.
+
+- ~car~ does not remove the first item from the list; it only reports
+  what it is.  After ~car~ has been applied to a list, the list is
+  still the same as it was.  In the jargon, ~car~ is
+  "non-destructive".  This feature of the list, the value returned by
+  the ~cdr~ function, is ~(violet daisy buttercup)~.
+
+  #+begin_src emacs-lisp
+    (cdr '(rose violet daisy buttercup))
+  #+end_src
+
+- When you evaluates this, ~(violet daisy buttercup))~ will appear in
+  the echo area.
+
+- Incidentally, in the example, the list of the flowers is quoted.  If
+  it were not, the Lisp interpreter wold try to evaluate the list by
+  calling ~rose~ as a function.  In this example, we do not want to do
+  that.
+
+- Clearly, a more reasonable names for ~cdr~ would be ~rest~.
+
+- (*There is a lesson here*: when you name a new function, consider
+  very carefully what you are doing, since you may be stuck with the
+  names for far longer than you expect.  The reason this document
+  perpetuates these names is that the Emacs Lisp source code uses
+  them, and if I did not use them, you would have a hard time reading
+  the code; but do, please, try to avoid using these terms
+  yourself. The people who come after you will be grateful to you.)
+
+- When ~car~ and ~cdr~ area applied to a list made up of symbols, such
+  as the list ~(pine fir oak maple)~, the element of the list returned
+  by the function ~car~ is the symbol ~pine~ without parentheses
+  around it.  ~pine~ is the first element in the list.  However, the
+  CDR of the list is a list itself, ~(fir oak maple)~, as you can set
+  by evaluating the following expressions in th usual way:
+
+  #+begin_src emacs-lisp
+    (car '(pine fir oak maple))
+
+    (cdr '(pine fir oak maple))
+  #+end_src
+
+- On the other hand, in a list of list, the first element is itself a
+  list ~car~ returns this first element as a list.  For example, the
+  following list contains three sub-lists, a list of carnivores, a
+  list of herbivores and a list of sea mammals:
+
+  #+begin_src emacs-lisp
+    (car '((lion tiger cheetah)
+           (gazelle antelope zebra)
+           (whale dolphin seal)))
+  #+end_src
+
+- In this example, the first element or CAR of the list is the list of
+  carnivores, ~(lion tiger cheetah)~, and the rest of the list is
+  ~((gazelle antelope zebra) (whale dolphin seal))~.
+
+- It is worth saying again that ~car~ and ~cdr~ are
+  not-destructive--that is, they do not modify or change lists they
+  area applied.  This very important for how they are used.
+
+- Also, in the first chapter, in the discussion about atoms, I said
+  that in Lisp, certain kinds of atom, such as an /array/ can be
+  separated into parts; but the mechanism for doing this is different
+  from the mechanism for splitting a list.  As far as Lisp is
+  concerned, the atoms of a list are unsplittable.  (See [[][Lisp
+  Atoms]]) The ~car~ and ~cdr~ functions are used for *splitting
+  lists* and are considered fundamental to Lisp.  Since they cannot
+  split or gain access to the parts of an array, an array is
+  considered an atom.  Conversely, the other fundamental, ~cons~, can
+  put together or construct a list, but not an array.  (Arrays are
+  handled by array-specific functions.  See [[][Arrays]] in the GNU
+  Emacs Lisp Reference Manual.)
+
+** ~cons~
+
+- The ~cons~ function construct lists; it is the inverse of ~car~ and
+  ~cdr~.  For example, ~cons~ can be to make a four element list from
+  the three element list, ~(fir oak maple)~
+
+  #+begin_src emacs-lisp
+    (cons 'pine '(fir oak maple))
+  #+end_src
+
+- After evaluating this list, you will see
+
+  #+begin_src emacs-lisp
+    (pines fir oak maple)
+  #+end_src
+
+- We often say that ~cons~ puts a new element at the beginning of a
+  list, or that it attaches or pushes element onto the list, but this
+  phrasing can be misleading, since ~cons~ does /not change an
+  existing list/, but /creates/ a new one.
+
+- Like ~car~ and ~cdr~, ~cons~ is non-declarative.
+
+  - [[Build a list][Builds list]]
+
+  - [[Find the Length of a List: ~length~][length]]       How to find the length of a list.
+
+**** Build a list
+
+- ~cons~ must have a list to attach to.  You cannot start from
+  absolutely nothing.  If you are building a list, you need to provide
+  at least an empty list at the beginning.  Here is a series of ~cons~
+  expressions that build up a list of flowers.  If you are reading
+  this Info in GNU Emacs, you can evaluate each of the expression in
+  the usual way; the value is printed in this text after '~⇒~’, which
+  you may read as "evaluates to".
+
+  #+begin_src emacs-lisp
+    (cons 'buttercup ()sdd
+    ⇒ (butterup)
+
+    (cons 'daisy '(buttercup))
+    ⇒ (daisy buttercup)
+
+    (cons 'violet '(daisy buttercup))
+    ⇒ (violet daisy buttercup)
+
+    (cons 'rose '(violet daisy buttercup))
+    ⇒ (rose daisy buttercup)
+  #+end_src
+
+- In the first example, the empty list is shown as ~()~ and list made
+  up of ~buttercup~ followed by the empty list is constructed.  As you
+  can see, the empty list is not shown in the list that was
+  constructed. All that you see is ~(buttercup)~.  The empty list is
+  not counted as an element of a list because there is nothing in an
+  empty list.  Generally speaking, an empty list is invisible.
+
+- The second example, ~(cons 'daisy '(buttercup))~ construct a new,
+  two element list by putting ~daisy~ in front of ~buttercup~; and the
+  third example construct a three element list by putting in front of
+  ~daisy~ and ~buttercup~.
+
+*** Find the Length of a List: ~length~
+
+- You can find out how many elements there are in a list by using the
+  Lisp function ~length~, as in the following examples:
+
+  #+begin_src emacs-lisp
+    (length '(buttercup))
+    ⇒ 1
+
+    (length '(daisy buttercup))
+    ⇒ 2
+
+    (length '(cons 'violet '(daisy buttercup)))
+    ⇒ 3
+  #+end_src
+
+- In the third example, the ~cons~ function is used to construct a
+  three element which is then passed to the ~length~ function as its
+  argument.
+
+- We can also use ~length~ to count the number of elements in an empty list:
+
+  #+begin_src emacs-lisp
+    (length ())
+    ⇒
+  #+end_src
+
+- As you would expect, the number of elements in apply list is zero.
+
+- An interesting experiment is to find out what happens if you try to
+  find the length of no list at all; that is, if you try to call
+  ~length~ without giving it an argument, not even an empty list:
+
+  #+begin_src emacs-lisp
+    (length )
+  #+end_src
+
+** ~nthcdr~
+
+- The ~nthcdr~ function is associated with the ~cdr~ function.  What
+  it does is take the CDR of a list repeatedly.
+
+- If you take the CDR of the list ~(pine fir oak maple)~, you will be
+  returned the list ~(fir oak maple)~.  If you repeat this on what was
+  returned, you will be returned the list ~(oak maple)~.  (Of course,
+  repeated CDRing on the original list will just give the original CDR
+  since the function does not change th list.  You need to evaluate
+  the CDR of the CDR and so on.)  If you continue this, eventually you
+  will be returned an empty list, which in this case, instead of being
+  shown as ~()~ is shown as ~nil~.
+
+- For review, here is a series of repeated CDRs, the text following
+  the '~⇒~' shows what returned.
+
+  #+begin_src emacs-lisp
+    (cdr '(pine fir oak maple))
+    ⇒ (fir oak maple)
+
+    (cdr '(fir oak maple))
+    ⇒ *(oak maple)
+
+    (cdr '(oak maple))
+
+    ⇒ (maple)
+
+    (cdr '(maple))
+    ⇒ nil
+
+    (cdr 'nil)
+    ⇒ nil
+
+    (cdr ())
+    ⇒ nil
+  #+end_src
+
+- You can also do several CDRs without printing the values in between,
+  like this:
+
+  #+begin_src emacs-lisp
+    (cdr (cdr '(pine fir oak maple)))
+    ⇒ (oak maple)
+  #+end_src
+  #+end_src
+
+  What you see, if you evaluate this, is the error message
+
+  #+begin_src emacs-lisp
+    Lisp error: (wrong-number-of-arguments length 0)
+  #+end_src
+
+- This means that the function receives the wrong number of arguments,
+  zero when it expects some other number of arguments.  In this case,
+  one argument is expected, the argument being a list whose length the
+  function is measuring.  (Note that /one/ list is /one/ argument,
+  even if the list has many elements inside it.)
+
+- The part of the error message that says '~length~' is the name of
+  the function.
