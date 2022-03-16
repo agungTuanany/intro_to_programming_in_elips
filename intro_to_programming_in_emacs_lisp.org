@@ -88,6 +88,9 @@
 - <<<esoteric>>> : intended for or likely to be understood by only a
   small of people with specialized knowledge or interest.
 
+- <<<digression>>> : a temporary departure from which the main subject
+  in speech or writing; synonyms: apostrophe, divagation
+
 *** Notes
 
 - A list in Lisp consist of parentheses surrounding atoms separated by
@@ -200,11 +203,11 @@ Above list is same as this:
 
 - At the top of the =*Backtrace*= buffer, you see the line:
 
-#+BEGIN_CENTER
+#+begin_src emacs-lisp
 \begin{verbatim}
         *Debugger entered--Lisp error: (void-function this)*
 \end{verbatim}
-#+END_CENTER
+#+end_src
 
 - The Lisp interpreter tried to evaluate the first atom of the list,
   the word 'this'. It is this action that generated the error message
@@ -232,11 +235,9 @@ Above list is same as this:
 - In such cases, you will see only one line of error message; it will
   appear in the echo area and look like this:
 
-#+BEGIN_CENTER
-\begin{verbatim}
-        Symbol's function definition is void: this
-\end{verbatim}
-#+END_CENTER
+#+begin_src emacs-lisp
+  Symbol's function definition is void: this
+#+end_src
 
 - The message goes away as soon as you type a key, even just to move the cursor.
 
@@ -456,20 +457,18 @@ Above list is same as this:
 
 - You will create a *=*Backtrace*=* buffer that says:
 
-  #+BEGIN_CENTER
-  \begin{verbatim}
-          * ---------- Buffer: *Backtrace* ----------
-          * Debugger entered--Lisp error: (void-function fill-column)
-          *   (fill-column)
-          *   eval((fill-column) nil)
-          *   elisp--eval-last-sexp(nil)
-          *   eval-last-sexp(nil)
-          *   funcall-interactively(eval-last-sexp nil)
-          *   call-interactively(eval-last-sexp nil nil)
-          *   command-execute(eval-last-sexp)
-          * ---------- Buffer: *Backtrace* ----------
-  \end{verbatim}
-  #+END_CENTER
+  #+begin_src emacs-lisp
+     ---------- Buffer: *Backtrace* ----------
+     Debugger entered--Lisp error: (void-function fill-column)
+       (fill-column)
+       eval((fill-column) nil)
+       elisp--eval-last-sexp(nil)
+       eval-last-sexp(nil)
+       funcall-interactively(eval-last-sexp nil)
+       call-interactively(eval-last-sexp nil nil)
+       command-execute(eval-last-sexp)
+     ---------- Buffer: *Backtrace* ----------
+  #+end_src
 
 *** Error Message for a Symbol without value
 
@@ -484,17 +483,17 @@ Above list is same as this:
 
 - You will create a *=*Backtrace*=* buffer that says:
 
-  #+BEGIN_CENTER
- \begin{verbatim}
-          * Debugger entered--Lisp error: (void-variable +)
-          *   eval(+ nil)
-          *   elisp--eval-last-sexp(nil)
-          *   eval-last-sexp(nil)
-          *   funcall-interactively(eval-last-sexp nil)
-          *   call-interactively(eval-last-sexp nil nil)
-          *   command-execute(eval-last-sexp)
-  \end{verbatim}
-  #+END_CENTER
+  #+begin_src emacs-lisp
+     ---------- Buffer: *Backtrace* ----------
+     Debugger entered--Lisp error: (void-variable +)
+       eval(+ nil)
+       elisp--eval-last-sexp(nil)
+       eval-last-sexp(nil)
+       funcall-interactively(eval-last-sexp nil)
+       call-interactively(eval-last-sexp nil nil)
+       command-execute(eval-last-sexp)
+     ---------- Buffer: *Backtrace* ----------
+  #+end_src
 
 - This backtrace is different from the very first error message we
   saw, which said '~Debugger entered--Lisp error: (void-function
@@ -3291,7 +3290,6 @@ Here is a brief summary of the various functions discussed in this chapter.
   if a buffer of that name does not exist.  The ~get-buffer~ function
   returns ~nil~ if the named buffer does not exists.
 
-
 * A Few More Complex Functions
 
 - In this chapter, we build on what we have learned in previous
@@ -4669,3 +4667,313 @@ Here is a brief summary of the various functions discussed in this chapter.
 - Indeed, the list changed from ~(horse cow sheep goat)~ to ~(horse
   cat dog)~.  The CDR of the list is changed from ~(cow sheep goat)~
   to ~(cat dog)~.
+
+
+* Cutting and Storing Text
+
+- Whenever you cut or clip text out of buffer with a /kill/ command in
+  GNU Emacs, it is stored in a list and you can bring it back with a
+  /yank/ command.
+
+- (The use of the word "kill" in Emacs for process which specifically
+  /do not/ destroy the value of the entities is an unfortunate
+  historical accident. A much more appropriate word would be "clip"
+  since that is the kill commands do; they clip text out of buffer and
+  put it into storage from which it can be brought back.  I have often
+  been tempted to replace globally all occurrences of "kill" in the
+  Emacs source with "clip" and all occurrences o "killed" with
+  "clipped").
+
+  - [[Storing Text in a List][Storing Text]]                  Text is stored in a list
+
+  - [[~zap-to-char~][zap-to-char]]                   Cutting out text up to character
+
+  - [[][kill-region]]                   Cutting text out of a region
+
+  - [[][copy-to-region-as-kill]]        A definition for copying text
+
+  - [[]Digression into C]]              Minor note on C programming language macros
+
+  - [[][defvar]                         How to give a variable an initial value
+
+  - [[][cons & search-fwd-Review]       How to give a variable an initial value
+
+
+** Storing Text in a List
+
+- When text is cut out of a buffer, it is stored on a list.
+  Successive pieces of text are stored on the list successively, so
+  the list might look like this:
+
+  #+begin_src emacs-lisp
+    ("a piece of text" "previous piece")
+  #+end_src
+
+- The function ~cons~ can be used to create a new list from a piece of
+  text (an "atom", to use the jargon) and an existing list, like this:
+
+  #+begin_src emacs-lisp
+    (cons "another piece"
+          '("a piece of text" "previous piece"))
+  #+end_src
+
+- If you evaluate this expression, a list of three elements will
+  appear in the echo area:
+
+  #+begin_src emacs-lisp
+    ("anothe piece" "a apiece of text" "previous piece")
+  #+end_src
+
+- With the ~car~ and ~nthcdr~ functions, you can retrieve whichever
+  piece of text you want.  For example, in the following code, ~nthcdr
+  1 ...~ returns the list with the first item removed; and the ~car~
+  returns the first element of that remainder--the second element of
+  the original list:
+
+  #+begin_src emacs-lisp
+    (car (nthcdr 1 '("another piece"
+        "a piece of text"
+    "previous piece")))
+  #+end_src
+
+- The actual functions in Emacs are more complex than this, of course.
+  The code for cutting and retrieving text has to be written so that
+  Emacs can figure out which element in the list you want--the first,
+  second, third, or whatever.  In addition, when you get to the end of
+  the list, Emacs should give you the first element of the list,
+  rather than nothing at all.
+
+- The list that holds the pieces of the text is called the /kill
+  ring/. This chapter lead up to a description of the kill ring, and
+  how it is used by first tracing how the ~zap-to-char~ functions
+  works.  This function calls a function that invoke a function that
+  manipulates the kill ring.  Thus, before reaching the mountains, we
+  climb the foothills.
+
+- A subsequent chapter describes how text that is cut from the buffer
+  is retrieved. See [[][Yanking Text Back]]
+
+** ~zap-to-char~
+
+- Let us look at the interactive ~zap-to-char~ function.
+
+  - [[The complete ~zap-to-char~ Implementation][Complete zap-to-char]]             The complete implementation
+  - [[The ~interactive~ Expression][zap-to-char interactive]]          A three part interactive expression
+  - [[The Body of ~zap-to-char~][zap-to-char body]]                              A short overview
+  - [[The ~search-forward~ Function][search forward]]                How to search for a string
+  - [[The ~progn~ Special Form][prongn]]                                 The ~progn~ special form
+  - [[Summing up ~zap-to-char~][Summing up zap-to-char]        Using ~point~ and ~search-forward~
+
+*** The complete ~zap-to-char~ Implementation
+
+- The ~zap~to-char~ functions removes the next text in the region
+  between the location of the cursor (i.e of point) up to and
+  including the next occurrence of a specified character.  The text
+  ~zap-to-char~ removes is put in the kill ring; and it can be
+  retrieved from the kill ring by typing ~C-y (yank)~.  If the
+  commands is given an argument, it removes text through that numbers
+  of occurrences.  Thus, if the cursor were at the beginning of this
+  sentence and the character were '~s~', '~Thus~; would be removed.
+  If the argument were two, '~Thus, if the curs~', would be removed ,
+  up to and including he '~s~' in '~cursor~'.
+
+- If the specified character is not found, ~zap-to-char~ will say
+  "Search failed", tell you the character you typed, and not remove
+  any text.
+
+- In order to determine how much text remove, ~zap-to-char~ uses a
+  search function.  Searches are used in code that manipulates text,
+  and we will focus attention on them as well on the deletion command.
+
+- Here is the complete text of the version 22 implementation of the
+  function:
+
+  #+begin_src emacs-lisp
+    (defun zap-to-char (arg char)
+      "Kill up to and including ARG'th occurance of CHAR.
+            Case is ignored if `case-fold-search' is non-nil in the current buffer.
+            Goes backward if ARG is negative; error if CHAR not found."
+      (interavtive"p\ncZap to char: ")
+      (if (char-table-p translation-table-for-input)
+          (setq char (or (aref translation-tabel-for-input-char) char)))
+      (kill-region (point) (progn
+                             (search-forward (char-to-string char)
+                                             nil nil arg)
+                             (point))))
+  #+end_src
+
+- The documentation is thorough.  You do need to know the jargon
+  meaning of word "kill".
+
+- The version 22 documentation string of ~zap-to-char~ uses ASCII
+  accent and apostrophe to quote a symbol, so it appears
+  ~`case-fold-search'~.  This quoting style was inspired by 1970s-era
+  displays in which grave accent ans apostrophe were often mirror
+  image for use as quotes.  On most modern displays this is no longer
+  need true, and when these two ASCII characters appear in
+  documentation strings or diagnostic message formats, Emacs typically
+  transliterates them to /curve quotes/ (left and right single
+  (quotation marks), so that the abovequoted symbols appears as
+  ~`case-fold-search'~.  Source-code string can also simply use curved
+  quoted directly.
+
+*** The ~interactive~ Expression
+
+- The interactive expression in the ~zap-to-char~ commands looks like this:
+
+  #+begin_src emacs-lisp
+    (interative "p\ncZap to char: ")
+  #+end_src
+
+- The part within quotation marks, ~"p\nZap to char: "~ is ~`cZap to
+  char: '~.  In this part, the lower case '~c~' indicates that
+  ~interactive~ expects a prompt and that prompt ans that the argument
+  will be a character.  The prompt follows the '~c~' and is the string
+  ~`Zap to char: '~ (with a space after the colon to make it look
+  good).
+
+- What all this does is prepare the arguments to ~zap-to-char~
+  function copies the text to the kill ring, but does not remove it.
+  The echo area displays a message saying that the buffer is
+  read-only.  Also, the terminal may beep or blink at you.
+
+*** The Body of ~zap-to-char~
+
+- The body of the ~zap-to-char- function contains the code that kills
+  (that is, remove) the next text in the region from the current
+  position from the current position of the cursor up to and including
+  the specified character.
+
+- The first part of the code looks like this:
+
+  #+begin_src emacs-lisp
+    (if (char-table-p translation-table-for-input)
+        (setq char (or (aref translation-table-for-input char) char)))
+    (kill-region (point) (progn
+                           (search-forward (char-to-string char) nil nil arg)
+                           (point)))
+  #+end_src
+
+~char-table-p~ is a hitherto unseen function.  It determine whether
+its argument is a character table.  When it is, sets the charter
+passed to ~zap-to-char~ to one of them, if that character exist, or to
+the character itself.  (This becomes important for certain characters
+in non-European languages.  The ~aref~ function extracts an element an
+array. It is an array-specific function that is not described in this
+document.  See [[][Arrays]] in The GNU Emacs lisp Reference Manual.)
+
+- ~(point)~ is the current position of the cursor.
+
+- The next part of the code is an expression using ~progn~.  The body
+  of the ~progn~ consists of call ~search-forward~ and ~point~.
+
+- It easier to understand how ~progn~ works after learning about
+  ~search-forward~, so we will look at ~search-forward~ and then at
+  ~progn~.
+
+*** The ~search-forward~ Function
+
+- The ~search-forward~ function is used to locate the
+  zapped-for-character in the ~zap-to-char~.  If the search is
+  successful, ~search-forward~ leaves point immediately after the last
+  character in the target string.  (In ~zap~to-char~, the target
+  string is just one character long. ~zap-to-char~ uses the function
+  ~char-to-string~ to ensure that the computer treats that character
+  as a string.)
+
+- In the ~zap-to-char~, the ~search-forward~ function looks like this:
+
+  #+begin_src emacs-lisp
+    (search-forward (char-to-string char) nil nil arg)
+  #+end_src
+
+- The ~search-forwad~ function takes four arguments:
+
+  1. The first argument is the target, what is searched for. This must
+     be a string, such as '~"z"~'.
+
+     As it happens, the argument passed to ~zap-to-char~ is a single
+     character.  Because of the way computers are a built, the Lisp
+     interpreter may treat a single characters as being different form
+     a string of characters.  Inside the computer, a single character
+     has different electronic format than a string of one character.
+     (A single character can often be recorded in the computer using
+     exactly one byte; but a string may no longer, and the computer
+     needs to be ready for this.)  Since the ~search-forward~ function
+     searcher for a string, the character that the ~zap-to-char~
+     function receives as its argument must be converted inside the
+     computer form one format to the other; otherwise the
+     ~search-forward~ function will fail.  The ~char-to-string~
+     function is used to make this conversion.
+
+  2. The second argument bounds the search; it is specified as a
+     position in the buffer.  In this case, the search can go to the
+     end of the buffer, so no bound is set and the second argument is
+     ~nil~.
+
+  3. The third argument tells the function what it should do if the
+     search fails--it can signal an error (and print a message) or it
+     can return ~nil~.  A ~nil~ as the third argument causes the
+     function to signal an error when the search fails.
+
+  4. The fourth argument to ~search-forward~ is the repeat count--how
+     many occurrences of the string to look for.  This argument is
+     optional and if the function is called without a repeat count,
+     this argument is passed the value 1.  If this argument is
+     negative, the search goes backwards.
+
+- In template form, a ~search-forward~ expression looks like this:
+
+  #+begin_src emacs-lisp
+    (search-forward "target-string"
+                    limit-of-search
+                    what-to-do-if-search-fails
+                    repeat-count)
+  #+end_src
+
+  We will look at ~progn~ next.
+
+*** The ~progn~ Special Form
+
+- ~progn~ is a special form that causes each of its arguments to be
+  evaluated in sequence and then the value returns the value of the
+  last one.  The preceding expressions are evaluated only for the side
+  effects they perform. The value produced by them are discarded.
+
+- The template for a ~progn~ expression is very simple"
+
+  #+begin_src emacs-lisp
+    (progn
+      body...)
+  #+end_src
+
+- In ~zap-to-char, the ~progn~ expression has to do two things: put
+  point in exactly the right position; and return the location of
+  point so that ~kill-region~ will know how far to kill to.
+
+- The first argument to the ~progn~ is ~search-forward~.  When
+  ~search-forward~ finds the string, the function leaves point
+  immediately after the last character in the target string.  (In this
+  case the target string is just one character long.)  If the search
+  is backwards, ~search-forward~ leaves point just before the first
+  character in target.  The movement of point is a side effect.
+
+*** Summing up ~zap-to-char~
+
+- Now that we have seen how ~search-forward~ and ~progn~ work, we can
+  see how the ~zap-to-char~ function work as a whole.
+
+- The first argument to ~kill-region~ is the position of the cursor
+  when ~zap-to-char~ command is given--the value of point at that
+  time.  Within the ~progn~, the search function then moves point to
+  just after the zapped-to-character and ~point~ returns the value of
+  this location.  The ~kill-region~ function puts together these two
+  value of point, the first one as the beginning of the region and the
+  second one as the end of the region, and removes the region.
+
+- The ~progn~ special form is necessary because the ~kill-region~
+  command takes two argument; and it wold fail if ~search-forward~ and
+  ~point~ expression were written in sequence as two additional
+  arguments.  The ~progn~ expression is a single argument to
+  ~kill-region~ and returns the one that ~kill-region~ needs for its
+  second argument.
