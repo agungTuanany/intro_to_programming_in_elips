@@ -6075,3 +6075,234 @@ Here is a brief summary of some recently introduced functions.
   ~delete-and-extract-region~ removes the text between point and mark
   from the buffer and throws it away.  You cannot get it back. (This
   is not interactive command.)
+
+
+* How Lists are Implemented.
+
+- In Lisp, atoms are recorded in a straightforward fashion; if the
+  implementation is not straightforward in practice, it is,
+  nonetheless, straightforward in theory.  The atom '~rose~', for
+  example, is recorded as the four contiguous letters, '~r~', '~o~',
+  '~s~'. '~e~'.  A list, on the other hand, is kept differently.  The
+  mechanism is equally simple, but it takes a moment to get used to
+  the idea.  A list is kept using a series of pairs of pointers.  In
+  the series, the first pointer in each pair points to an atom or to
+  another list, and the second pointer in each pairs points to the
+  next pair, or to the symbol ~nil~, which marks the end of the list.
+
+- A pointer itself is quite simply the electronic address of what is
+  pointed to.  Hence, a list is kept as a series of electronic
+  addresses.
+
+    - [[List diagrammed][Lists diagrammed]]
+
+    - [[][Symbol as Chest]]             Exploring a powerful metaphor
+
+** List diagrammed
+
+- For example, the list ~(rose violet buttercup)~ has three elements,
+  '~rose~', '~violet~', '~buttercup~'.  In the computer, the
+  electronic address of '~rose~' is recorded in a segment of computer
+  memory along with the address that gives the electronic address of
+  where the atom '~violet~' is located; and that address (the one that
+  tells where '~violet~' is located) is kept along with an address
+  that tells where the address for the atom '~buttercup~' is located.
+
+
+- This sound more complicated than it is and is easier seen in a diagram:
+
+  #+begin_src emacs-lisp
+     --- ---       --- ---      --- ---
+    |   |   | --> |   |   | -->|   |   | --> nil
+     --- ---       --- ---      --- ---
+      |             |            |
+      |             |            |
+      --> rose      --> voilet   --> buttercup
+  #+end_src
+
+- In the diagram, each box represents a word of computer memory that
+  holds a Lisp object, usually in the form of a memory address.  The
+  boxes, i.e., the addresses, are in pairs.  Each arrow point to what
+  the address is the address of, either an atom or another pair of
+  addresses.  The first box is the electronic address of '~rose~' and
+  the arrow points to '~rose~', the second box is the address of the
+  next pair of boxes, the first part of which is the address of
+  '~violet~' and the second part of which is the address of the next
+  pair.  The very last box points to the symbol ~nil~, which marks the
+  end of the list.
+
+- When the variable is set to a list with an operation such as ~setq~,
+  it stores the address of the first box in the variable.  Thus
+  evaluation of the expression.
+
+  #+begin_src emacs-lisp
+    (setq bouquet '(rose violet buttercup))
+  #+end_src
+
+- creates a situation like this:
+
+  #+begin_src emacs-lisp
+    bouquet
+         |
+         |    --- ---        --- ---        --- ---
+         --> |   |   | -->  |   |   | -->  |   |   | --> nil
+              --- ---        --- ---        --- ---
+               |              |              |
+               |              |              |
+               --> rose       --> violet     --> buttercup
+  #+end_src
+
+- In the same example, the symbol ~bouquet~ holds the address of the
+  first pair of boxes.
+
+- the same list can be illustrated in a different sort of box notation
+  like this:
+
+  #+begin_src emacs-lisp
+    boquet
+       |
+       |     ----------------      -----------------       ----------------
+       |    | car    |  cdr  |    | car     |  cdr  |     | car     | cdr  |
+       -->  | rose   |   o------->| violet  |   o-------> | butter- |      |
+            |        |       |    |         |       |     | cup     |      |
+             ----------------      -----------------       ----------------
+  #+end_src
+
+- (Symbol consist of more than pairs of addresses, but the structure
+  of a symbol is made up of addresses.  Indeed, he symbol ~bouquet~
+  consist of a group of address-boxes, one of which is the address of
+  the printed word '~bouquet~'. a second of which is the address of a
+  function definition attach to the symbol, if any, a third of which
+  is the address of the first pair of address-boxes for the list
+  ~(rose violet buttercup)~, and so on.
+
+- If a symbol is set to CDR of a list, the list itself is not changed;
+  the symbol simply has an address further down the list.  (In the
+  jargon, CAR and CDR are "non-destructive".) Thus, evaluation of the
+  following expression.
+
+  #+begin_src emacs-lisp
+    (setq flowers (cdr boquet))
+  #+end_src
+
+ - produces this:
+
+  #+begin_src emacs-lisp
+    bouquet      flowers
+      |             |
+      |    --- ---  |     --- ---      --- ---
+      --> |   |   |  --> |   |   |    |   |   |
+          |   |   |----> |   |   |--> |   |   | --> nil
+           --- ---        --- ---      --- ---
+            |              |            |
+            |              |            |
+            --> rose       --> violet   --> buttercup
+  #+end_src
+
+- The value of ~flowers~ is ~(violet buttercup)~, which is to say, the
+  symbol ~flowers~ holds of the pair of address-boxes, the first of
+  which holds the address of ~violet~, and the second of which holds
+  the address of ~buttercup~.
+
+- A pair of address-boxes is called a /cons cell/ or /dotted pair/.
+  See [[][Cons Cell and List Types]] in The GNU Emacs Lisp Reference
+  Manual, and [[][Dotted Pair Notation]] in The GNU Emacs Lisp
+  Reference Manual, for more information about cons cells and dotted
+  pairs.
+
+- The function ~cons~ adds a new pair of addresses to the front of a
+  series of addresses like that shown above.  For example, evaluating
+  the expression
+
+  #+begin_src emacs-lisp
+    (setq boquet (cons 'lily bouquet))
+  #+end_src
+
+- produces
+
+  #+begin_src
+    bouquet                        flowers
+      |                             |
+      |    --- ---        --- ---   |     --- ---      --- ---
+      --> |   |   |      |   |   |   --> |   |   |    |   |   |
+          |   |   |--->  |   |   |-----> |   |   |--> |   |   | --> nil
+           --- ---        --- ---         --- ---      --- ---
+            |              |               |            |
+            |              |               |            |
+            --> lily       --> rose         --> violet   --> buttercup
+
+  #+end_src
+
+- However, this does not changed the value of the symbol ~flowers~, as
+  you can see by evaluating the following,
+
+  #+begin_src emacs-lisp
+    (eq (cdr (cdr bouquet)) flowers)
+  #+end_src
+
+  which returns ~t~ for true.
+
+- Until it reset, ~flowers~ still has the value ~(violet buttercup)~;
+  that is, it has the address of the cons cell whose first address is
+  of ~violet~.  Also, this does not alter any of pre-existing cons
+  cells; they are all still the same.
+
+
+- Thus, in Lisp, to get the CDR of a list, you just get the address of
+  the next cons cell in the series; to get the CAR of a list, you get
+  the address of the first element of the list; to ~cons~ a new
+  element on a list, you add a new cons cell to the front of the list.
+  That is all there is to it!  The underlying structure of Lisp is
+  brilliantly simple!.
+
+- And what does the last address in a series of cons cell refer to? It
+  is the address of the empty list, of ~nil~.
+
+- In summary, when a Lisp variable is set to a value, it is provided
+  with the address of the list to which the variable refers.
+
+** Symbols as a Chest of Drawers
+
+- In an earlier section, I suggested that you might imagine a symbol
+  as being a chest of drawers.  The function definition is put in one
+  drawer, the value in another, and so on.  What is put in the drawer
+  holding the value can be changed without affecting the contents of
+  the drawer holding the function definition, and vice versa.
+
+- Actually, what is put in each drawer is the address of the value of
+  function definition.  It is as if you found an old chest in the
+  attic, and in one of its drawers you found a map giving you
+  directions to where the buried the treasure lies.
+
+- (In addition to its name, symbol definition, and variable value, a
+  symbol has a drawer for a /property list/ which can be used to
+  record other information. Property lists are not discussed here; see
+  [[][Property list]] in The GNU Emacs Lisp Reference Manual.)
+
+- Here is a fanciful representation:
+
+  #+begin_src emacs-lisp
+           Chest of Drawers           Content of Drawers
+
+       --     oOoOoO      --
+      /                     \
+     -------------------------
+    |     directions to       |            [map to]
+    |      symbol name        |             bouquet
+    |                         |
+    +-------------------------+
+    |     directions to       |
+    |   symbol definition     |            [none]
+    |                         |
+    +-------------------------+
+    |     directions to       |            [map to]
+    |     variable value      |            [rose violet buttercup]
+    |                         |
+    +-------------------------+
+    |     directions to       |
+    |     property values     |            [not described]
+    |                         |
+    +-------------------------+
+    |/                       \|
+
+  #+end_src
