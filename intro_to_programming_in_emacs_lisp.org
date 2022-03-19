@@ -6306,3 +6306,127 @@ Here is a brief summary of some recently introduced functions.
     |/                       \|
 
   #+end_src
+
+
+* Yanking Text Back
+
+- Whenever you cut text out of buffer with a kill command in GNU
+  Emacs, you can bring it back with a yank command.  The text that is
+  cut out of the buffer is put in the kill ring and the yank command
+  insert the appropriate contents of the kill ring back into a buffer
+  (not necessarily the original buffer).
+
+- A simple ~C-y (yank) command insert the first item from the kill
+  ring into the current buffer.  If the ~C-y~ command is followed
+  immediately by ~M-y~, the first element is replaced by the second
+  element.  Successive ~M-y~ command replace the second element with
+  the third, fourth, or fifth element, and so on.  When the last
+  element in the kill ring is reached, it is replaced by the first
+  element and the cycle is repeated.  (Thus the kill ring is called a
+  "ring" rather than just a "list".  However, the actual data
+  structure that holds the text is a list.  See [[][Handling the Kill
+  Ring]], for the details of how the list is handling as a ring.)
+
+  - [[Kill Ring Overview][Kill Ring Overview]]
+
+  - [[The ~kill-ring-yank-pointer~ Variable][kill-ring-yank-pointer]]        The kill ring is a list
+
+  - [[][yank nthcdr Exercises]]        The ~kill-ring-yank-pointer~ variable
+
+
+** Kill Ring Overview
+
+- The kill ring is a list of textual strings.  This is what it looks like:
+
+  #+begin_src emacs-lisp
+    ("some text" "a different piece of text" "yet more text")
+  #+end_src
+
+- If this were the contents of my kill ring and I pressed ~C-y~, the
+  string of characters saying '~some text~' would be inserted in this
+  buffer where my cursor is located.
+
+- The ~yank~ command is also used for duplicating text by copying it.
+  The copied text is not cut from the buffer, but a copy of it is put
+  on the kill ring and is inserted by yanking it back.
+
+- Three functions are used for bringing text back from the kill ring:
+  ~yank~, which is usually bound to ~C-y~; ~yank-pop~, which is
+  usually bound to ~M-y~; and ~rotate-yank-pointer~, which is used by
+  the two other functions.
+
+- These function refer to the kill ring through a variable called the
+  ~kill-ring-yank-pointer~.  Indeed, the insertion code for both the
+  ~yank~, and ~yank-pop~ function is:
+
+  #+begin_src emacs-lisp
+    (insert (car kill-ring-yank-pointer)
+  #+end_src
+
+- (Well, no more. In GNU Emacs 22, the function has been replaced by
+  ~insert-for-yank~, which calls ~insert-for-yank-1~ repetitively for
+  each ~yank-handler~ segment.  In turn, ~insert-for-yank-1~ strips
+  text properties from the inserted text according to
+  ~yank-excluded-properties~.  Otherwise, it is just like ~insert~.
+  We will stick with plain ~insert~ since it is easier to understand.
+
+- To begin to understand how ~yank~ and ~yank-pop~ work, it is first
+  necessary to look at the ~kill-ring-yank-pointer~ variable.
+
+
+** TODO The ~kill-ring-yank-pointer~ Variable
+
+- ~kill-ring-yank-pointer~ us a variable, just as ~kill-ring~ is a
+  variable.  It points to something by being to the value of what it
+  points to, like any other Lisp variable.
+
+- Thus, if the value of the kill ring is:
+
+  #+begin_src emacs-lisp
+    ("some text" "a different piece of text" "yet-more-text")
+  #+end_src
+
+- and the ~kill-ring-yank-pointer~ points to the seconds clause, the
+  value of ~kill-ring-yank-pointers~ is:
+
+  #+begin_src emacs-lisp
+    ("a different piece of text" "yet more text")
+  #+end_src
+
+- As explained in the previous chapter (see [[][List
+  implementation]]), the computer does not keep two different copies
+  of the text being pointed to by both the ~kill-ring~ and the
+  ~kill-ring-yank-pointer~.  the words "a different piece of text" and
+  "yet another text" are not duplicated.  instead, the two lisp
+  variables point to the same pieces of text. here is a diagram:
+
+  #+begin_src emacs-lisp
+    kill-ring         kill-ring-yank-pointer
+        |                  |
+        |     ----   ----  |       ----   ----       ----   ----
+        ---> |    | |    |  -->   |    | |    |     |    | |    |
+             |    | |    |---->   |    | |    |---> |    | |    |---> nil
+              ----   ----          ----   ----       ----   ----
+               |                    |                 |
+               |                    |                 |
+               |                    |                 ---> "yet more text"
+               |                    |
+               |                    ---> "a different piece of text"
+               |
+               ---> "some text"
+  #+end_src
+
+- both the variable ~kill-ring~ and the variable
+  ~kill-ring-yank-pointer~ are pointers.  but the kill ring itself is
+  usually described ad if it were actually what it is composed of.
+  the ~kill-ring~ is spoken of as if it were list rather than that it
+  points to the list. Conversely, the ~kill-ring-pointer~ is spoken of
+  as pointing to a list.
+
+- These two ways of talking about the same thing sound confusing at
+  first but make sense on reflection.  The kill ring is generally
+  though of as the complete structure of data that holds the
+  information of what has recently been cut out of Emacs buffer.  The
+  ~kill-ring-yank-pointer~ on the other hand, serves to indicate--that
+  is, to point to--that part of the kill ring of which the first
+  element (the CAR) will be inserted.
