@@ -6374,7 +6374,7 @@ Here is a brief summary of some recently introduced functions.
   necessary to look at the ~kill-ring-yank-pointer~ variable.
 
 
-** TODO The ~kill-ring-yank-pointer~ Variable
+** The ~kill-ring-yank-pointer~ Variable
 
 - ~kill-ring-yank-pointer~ us a variable, just as ~kill-ring~ is a
   variable.  It points to something by being to the value of what it
@@ -6430,3 +6430,646 @@ Here is a brief summary of some recently introduced functions.
   ~kill-ring-yank-pointer~ on the other hand, serves to indicate--that
   is, to point to--that part of the kill ring of which the first
   element (the CAR) will be inserted.
+
+
+* Loops and Recursion
+
+- Emacs Lisp has two primary ways to cause an expression, or a series
+  of expression, to be evaluated repeatedly: one using a ~while~ loop,
+  and the other using ~recursion~.
+
+- Repetition can be very valuable.  For example, to move forward four
+  sentences, you need only write a program that will move forward one
+  sentence and then repeat the process four times.  Since the computer
+  does not get bored or tired, such repetitive action does not have
+  the deleterious effects that excessive or the wrong kinds of
+  repetition can have on humans.
+
+- People mostly write Emacs Lisp function using ~while~ loops and
+  their kin; but you can use recursion, which provides a very powerful
+  way of think about and then to solve the problems.
+
+- (You can write recursive function to be frugal or wasteful of mental
+  or computer resource; as it happens, methods that people find
+  easy--that are frugal of mental resources--sometimes use
+  considerable computer resources.  Emacs was designed to run on
+  machine that we now consider limited and its default settings are
+  conservative.  You may want to increase the values of
+  ~max-specpdl-size~ and ~max-lisp-eval-depth~.  In may ~.emacs~ file,
+  I set them to 15 and 30 times their default value.)
+
+  - [[~while~][while]]                 Causing a stretch of code to repeat
+
+  - [[][dolist do-times]]
+
+  - [[][Recursion]]             Causing a function to call itself
+
+** ~while~
+
+- The ~while~ special form test whether the value returned by
+  evaluating its first argument is true or false.  This is similar to
+  what Lisp interpreter does with an ~if~; what the interpreter does
+  next, however, is different.
+
+- In a ~while~ expression, if the value returned by evaluating the
+  first argument is false, the Lisp interpreter skips the rest of the
+  expression (the /body/ of the expression) and does not evaluate it.
+  However, if the value is true, the Lisp interpreter evaluates the
+  body of the expression and then again tests whether the first
+  argument to ~while~ is true or false.  If the value returned by
+  evaluating the first argument is true, the Lisp interpreter again
+  evaluates the body of the expression.
+
+- The template for a ~while~ expression looks like this:
+
+  #+begin_src emacs-lisp
+    (while true-or-false-test
+      body...)
+  #+end_src
+
+  - [[Looping with ~while~][Looping with while]]                  Repeat so long as test returns true
+
+  - [[A ~while~ Loop and a List][Leop example]]                 A ~while~ loop that uses a list
+
+  - [[An Example: ~print-elements-of-list~][print-element-of-list]]         Uses ~while~, ~car~, ~cdr~
+
+  - [[A Loop with an Incrementing Counter][Incrementing Loop]]                   A loop with an incrementing counter
+
+  - [[Details of an Incrementing Loop][Incrementing Loop Details]]
+
+  - [[][Decrementing Loop]]             Repeat so long as test returns true
+
+*** Looping with ~while~
+
+- So long as the true-or-false-text of the ~while~ expression returns
+  true when it is evaluated, the body is repeatedly evaluated.  This
+  process is called a loop since the Lisp interpreter repeats the same
+  thing again and again, like an airplane doing a loop.  When the
+  result of evaluating the true-or-false-test is false, the Lisp
+  interpreter does not evaluate the rest of the ~while~ expression and
+  exits the loop.
+
+- Clearly, if the value returned by evaluating the first argument to
+  ~while~ is always true, the body following will be evaluating again
+  and again ... and again ... forever.  Conversely, if the value
+  returned is never true, the expressions in the body will never be
+  evaluated.  The craft of writing a ~while~ loop consists of choosing
+  a mechanism such that the true-or-false-test returns true just the
+  number of times that you want to subsequent expressions to be
+  evaluated, and then have the test returns false.
+
+- The value returned by evaluating a ~while~ is the value of
+  true-or-false-test.  An interesting consequence of this is that a
+  ~while~ loop that evaluates without error will return ~nil~ or false
+  regardless of whether it has looped 1 or 100 times or none at all.
+  A ~while~ expression the evaluates successfully never returns a true
+  value! What this mean is that ~while~ is always evaluated for its
+  side effects, which is to say, the consequences of evaluating the
+  expressions within the body of the ~while~ loop.  This makes sense.
+  It is not the mere act of looping that is desired, but consequences
+  of what happens when the expression in the loop are repeatedly
+  evaluated.
+
+*** A ~while~ Loop and a List
+
+- A common way to control a ~while~ loop is to test whether a list has
+  any elements. If it does, the loop in repeated; but i it does not,
+  the repetition is ended.  Since this is an important technique, we
+  will create a short example to illustrate it.
+
+- A simple way to test whether a list has elements is to evaluate the
+  list; if it has no elements, it is an empty list ans will return the
+  empty list, ~()~, which is a synonym for ~nil~ or false.  On the
+  other hand, a list with elements will return those elements when it
+  is evaluated.  Since Emacs Lisp considered as true any value that is
+  not ~nil~, as list returns elements will test true in a ~while~
+  loop.
+
+- For example, you can set the variable ~empty-list~ to ~nil~ by
+  evaluating the following ~setq~ expression:
+
+  #+begin_src emacs-lisp
+    (setq empty-list ())
+  #+end_src
+
+- After evaluating the ~setq~ expression, you can evaluate the
+  variable ~empty-list~ in the usual way, by placing the cursor after
+  the symbol and typing ~C-x C-e~; ~nil~ will appear in your echo
+  area:
+
+  #+begin_src emacs-lisp
+    empty-list
+  #+end_src
+
+- On the other hand, if you set a variable to be a list with elements,
+  the list will appear when you evaluate the variable, as you can see
+  by evaluating the following two expressions:
+
+  #+begin_src emacs-lisp
+    (setq animals '(gazelle giraffe lion tiger))
+
+    animals
+  #+end_src
+
+- Thus, to create a ~while~ loop that tests whether there any items in
+  the list ~animals~, the first part of the loop will be written like
+  this:
+
+  #+begin_src emacs-lisp
+    (while animals
+      ....
+  #+end_src
+
+- When the ~while~ tests its first argument, the variable ~animals~ is
+  evaluated.  It returns a list.  So long as the list has elements,
+  the ~while~ considers the results of the test to be true; but when
+  the list is empty, it considers the results of the test to be false.
+
+- To prevent the ~while~ loop from running forever, some mechanism
+  needs to provided to empty list eventually.  An oft-used technique
+  is to have one of the subsequent forms in the ~while~ expression set
+  the value of the list to be the CDR of the list.  Each time the
+  ~cdr~ function is evaluated, the list will be made shorter, until
+  eventually only the empty list will be left.  At this point, the
+  test of the ~while~ loop will returns false, and the arguments to
+  the ~while~ will no longer be evaluated.
+
+- For example, the list of animals bound to the variable ~animals~ can
+  be set to be the CDR of the original list with the following
+  expression:
+
+  #+begin_src emacs-lisp
+(setq animals (cdr animals))
+  #+end_src
+
+- If you have evaluated the previous expressions and then evaluate
+  this expression, you will see ~(giraffe lion tiger)~ appear in the
+  echo area.  If you evaluate the expression again, ~(lion tiger)~
+  will appear in the echo area.  If you evaluate it again and yet
+  again, ~(tiger)~ appears and then the empty list, shown by ~nil~.
+
+- A template for a ~while~ loop that uses the ~cdr~ function
+  repeatedly to cause the true-or-false-test eventually to test false
+  looks like this:
+
+  #+begin_src emacs-lisp
+    (while test-whether-list-is-empty
+      body...
+      set-list-to-cdr-of-list)
+  #+end_src
+
+- This test use of ~cdr~ can be put together in a function that goes
+  through a list and prints each element of the list on a line of its
+  own.
+
+*** An Example: ~print-elements-of-list~
+
+- The ~print-elements-of-list~ function illustrate a ~while~ loop with
+  a list.
+
+- The function requires several lines for its output.  If you are
+  reading this in a recent instance of GNU Emacs, you can evaluate the
+  following expression inside of Info, as usual.
+
+- If you are using an earlier version of Emacs, you need to copy the
+  necessary expression to your ~*scracth*~ buffer and evaluates them
+  there.  This is because the echo area had only one line in the
+  earlier version.
+
+- You can copy the expression by marking the beginning of the region
+  with ~C-SPC~ (~set-mark-command~), moving the cursor to the end of
+  the region using ~M-w~ (~kill-ring-save~, which calls
+  ~copy-region-as-kill~ and then provides visual feedback).  In the
+  ~*scratch*~ buffer, you can yank the expressions back by typing
+  ~C-y~ (~yank~).
+
+- After you have copied the expressions to the ~*scratch*~ buffer,
+  evaluate each expression in turn.  Be sure to evaluate the last
+  expression, ~(print-element-of-list- animals)~, by typing ~C-u C-x
+  C-e~, that is, by giving an argument to ~eval-last-sexp~.  This will
+  cause the result of the evaluation to be printed in the ~*scrath*~
+  buffer instead of being printed in the echo area.  (Otherwise you
+  will see something like this in your echo area:
+  ~^Jgazelle^J^Jgiraffe^J^Jlion^J^Jtiger^J^Jnil~ in which each '~^J~'
+  stands for a new line.)
+
+- In a recent instance of GNU Emacs, you can evaluate these expression
+  directly in the Info buffer, and the echo area will grow to show the
+  results.
+
+  #+begin_src emacs-lisp
+    (setq animals '(gazelle giraffe lion tiger))
+
+    (defun print-elements-of-list (list)
+      "Print each element of LIST on a line of its own."
+      (while list
+        (print (car list))
+        (setq list (cdr list))))
+
+      (print-elements-of-list animals)
+  #+end_src
+
+- When you evaluate the three expression in a sequence, you will see
+  this:
+
+  #+begin_src emacs-lisp
+    gazelle
+
+    giraffe
+
+    lion
+
+    tiger
+    nil
+  #+end_src
+
+- Each element of the list is printed on a line of its own (that is
+  what the function ~print~ does) and then value returned by the
+  function is printed.  Since the last expression in the function is
+  the ~while~ loop, and since ~while~ loop always return ~nil~, a
+  ~nil~ is printed after the last element of the list.
+
+*** A Loop with an Incrementing Counter
+
+- A loop is not useful unless is stop when it ought.  Besides
+  controlling a loop with a list, a common way of stopping a loop is
+  to write the first argument as a test that returns false when the
+  correct number of repetitions are complete.  This means that the
+  loop must have a counter--an expression that counts how many times
+  the loop repeats itself.
+
+*** Details of an Incrementing Loop
+
+- The test for a loop with an incrementing counter can be an
+  expression such as ~(< count desired-number)~ which returns ~t~ for
+  true if the value of ~count~ is less than the ~desired-number~ of
+  repetitions and ~nil~ for false if the value of ~count~ is equal to
+  or is greater than the ~desired-number~.  The expression that
+  increments the count can be simple ~setq~ such as ~(setq count (1+
+  count))~, where ~+1~ is a built-in function in Emacs Lisp that adds
+  1 to its argument.  (The expression ~(1+ count)~ has the same result
+  as ~(+ count 1)~, but is easier for human to read.)
+
+- The template for a ~while~ loop controlled by an incrementing
+  counter looks like this:
+
+  #+begin_src emacs-lisp
+    set-count-to-initial-value
+    (while (< count desired-number)     ; true-or-false-test
+      body...
+      (setq count (+1 count)))          ; increment
+  #+end_src
+
+- Note that you need to set the initial value of ~count~; usually it
+  is set to 1.
+
+  - [[Example with incrementing counter][Incrementing Example]]           Counting pebbles in a triangle
+
+  - [[The parts of the function definition][Inc Example part]]               The parts of the function definition
+
+  - [[Putting the function definition together][Inc Example altogether]]         Putting the function definition together
+
+**** Example with incrementing counter
+
+- Suppose you are playing on the beach and decide to make a triangle
+  of pebbles, putting one pebbles in the first row, two in the second
+  roe, three in the third row, and so on, like this:
+
+  #+begin_src emacs-lisp
+        *
+       * *
+      * * *
+     * * * *
+  #+end_src
+
+- (about 2500 years ago, Pythagoras and others developed the beginning
+  of number theory by considering question such as this.)
+
+- Suppose you want to know how many pebbles you will need to make a
+  triangle with 7 rows?
+
+- Clearly, what you need to do is add up the numbers from 1 to 7.
+  There are two ways to do this; start with the smallest number, one,
+  and add up the list in sequence, 1, 2, 3, 4 and so on; or start with
+  the largest number and add the list going down: 7, 6, 5, 4 and so
+  on.  Because both mechanisms illustrate common ways of writing
+  ~while~ loops, we will create two examples. one counting up and the
+  other counting down.  In this first example, we will start with 1
+  and add 2, 3, 4 and so on.
+
+- If you are just adding up a short list of numbers, the easiest way
+  to do it is to add up all the numbers at once.  However, if you do
+  not know ahead of time how many numbers your list will have, or if
+  you want to be prepared for a very long list, then you need to
+  design your addition so that what you do is repeat a simple process
+  many times instead of doing a more complex process once.
+
+- For example, instead of adding up all the pebbles all at once, what
+  you can do is add the number of pebbles in the first row, 1, to the
+  number in the second row, 2, and then add the total of those two
+  roes to the third row, 3.  Then you can add the number in the forth
+  row, 4, to the total of the first three roes; and so on.
+
+- The critical characteristic of the process is that each repetitive
+  action is simple.  In this case, at each step we add only two
+  numbers, The number of pebbles in the row and the total already
+  found.  This process of adding two numbers is repeated again and
+  again until the last row has been added to the total of all
+  preceding rows.  In a more complex loop the repetitive action might
+  be so simple, but it will be simpler than doing everything all at
+  once.
+
+**** The parts of the function definition
+
+- The preceding analysis gives us the bones of our function
+  definition: first, we will need a variable that we can call ~total~
+  that will be the total of pebbles.  This will be the value returned
+  by the function.
+
+- Second, we know that the function will require an argument: this
+  argument will be the total number of rows in the triangle.  It can
+  be called ~number-of-rows~.
+
+- Finally, we need a variable to use as a counter.  We could call this
+  variable ~counter~, but a butter name is ~row-numbers~.  That is
+  because what the counter does in this function is count rows, and a
+  program should be written to be understandable as possible.
+
+- When the Lisp interpreter first start evaluating the expressions in
+  the function, the value of ~total~ should be set to zero, since we
+  have not added anything to it.  Then the function should add the
+  numbers of pebbles in the first row to the total, and then add the
+  number of pebbles in the second to the total, and then add the
+  number of pebbles in the third row to the total, and so on, until
+  there are no more rows left to add.
+
+- Both ~total~ and ~row-number~ are used only inside the function, so
+  they can be declared as local variables with ~let~ and given initial
+  values.  Clearly, the initial value for ~total~ should be 0.  The
+  initial value of ~row-number~ should be 1, since we start with the
+  first row, this means that the ~let~ statement will look like this:
+
+  #+begin_src emacs-lisp
+    (let ((total 0)
+          (row-number 1))
+      body...)
+  #+end_src
+
+- After the internal variables are declared and bound to their initial
+  values, we can begin the ~while~ loop.  The expression that serves
+  as the test should return a value of ~t~ for true so long as the
+  ~row-number~ is less than or equal to the ~number-of-rows~.  (If the
+  expression tests true only so long as the row number is less than
+  the number of roes in the triangle, the last row will never be added
+  to the total; hence the row number has to be either less than or
+  equal to the number of rows.)
+
+- Lisp provide ~<=~ function that returns true if the value of its
+  first argument is less than or equal to the value of its second
+  argument and false otherwise.  So the expression that the ~while~
+  will evaluate as its test should look like this:
+
+  #+begin_src emacs-lisp
+    (<= row-number number-of-rows)
+  #+end_src
+
+- The total number of pebbles can be found by repeatedly adding the
+  number of pebbles in a row to the total already found.  Since the
+  number of pebbles in the row is equal to the row number, the total
+  can be found by adding the row number to the total.  (Clearly, in a
+  more complex situation, the number of pebbles in the row might be
+  related to the row number in a more complicated way; if this were
+  the case, the row number would be replaced by the appropriate
+  expression.)
+
+- After setting the value of ~total~, the conditions need to be
+  established for the next repetition of the loop. if there is one.
+  This is done by incrementing the value of the ~row-number~ variable,
+  which serves as a counter.  After the ~row-number~ variable has been
+  incremented, the true-or-false-test at the beginning of the ~while~
+  loop tests whether its value is still less than or equal to the
+  value of the ~number-of-rows~ and if it is, adds the new value of
+  the ~row-number~ variable to the ~total~ of the previous repetition
+  of the loop.
+
+- The built-in Emacs Lisp function ~+1~ add 1 to a number, so the
+  ~row-number~ variable can be incremented with this expression:
+
+  #+begin_src emacs-lisp
+    (setq row-number (1+ row-number))
+  #+end_src
+
+**** Putting the function definition together
+
+- We have created the parts for the function definition; now we need
+  to put them together.
+
+- First, the contents of the ~while~ expression:
+
+  #+begin_src emacs-lisp
+    (while (<= row-number number-of-rows)
+      (setq total (+ total row-number))               ; true-or-false-test
+      (setq row-number (1+ row-number))               ; incrementer
+  #+end_src
+
+- Along with the ~let~ expression varlist, this very nearly completes
+  the body of the function definition.  However, it requires one final
+  element, the need for which is somewhat subtle.
+
+- The final touch is to place the variable ~total~ on a line by itself
+  after the ~while~ expression.  Otherwise, the value returned by the
+  whole function is the value of the last expression that is evaluated
+  in the body of the ~let~, and this is the value returned by the
+  ~while~, which is always ~nil~.
+
+- This is may not be evident at first sight.  It almost looks as if
+  the incrementing expression is the last expression of the whole
+  function.  But that expression is part of the body of the ~while~;
+  it is the last element of the list that start with the symbol
+  ~while~.  Moreover, the whole of the ~while~ loop is a list within
+  the body of the ~let~.
+
+  #+begin_src emacs-lisp
+    (defun name-of-funtion (argument-list)
+      "documentation..."
+      (let (varlist)
+        (while (true-or-false-text)
+          body-of-while)
+        ... ))                  ; Need final expression here.
+  #+end_src
+
+- The result of evaluating the ~let~ is what is going to be returned
+  by the ~defun~ since the ~let~ is not embedded within any containing
+  list, except for the ~defun~ as a whole.  However, if the ~while~ is
+  the last element of the ~let~ expression, the function will always
+  return ~nil~.  This is not what we want! Instead, what we want is
+  the value of the variable ~total~.  This is returned by simply
+  placing the symbol as the last element of the list starting with
+  ~let~.  It gets evaluated after the preceding elements of the list
+  are evaluated, which means it gets evaluated after it has been
+  assigned the correct value for the total.
+
+- It may be easier to see this by printing the lust starting with
+  ~let~ all on one line.  This format makes it evident that the
+  /varlist/ and ~while~ expression are the second and third elements
+  of the list starting with ~let~, and ~total~ is the last element:
+
+  #+begin_src emacs-lisp
+    (let (varlist) (while (true-or-false-test) body-of-while... ) total)
+  #+end_src
+
+- Putting everything together, the ~triangle~ function definition
+  looks like this:
+
+  #+begin_src emacs-lisp
+    (defun triangle (number-of-rows)        ; Version with
+                                            ;   incrementing counter.
+      "Add up the number of pebbles in a triangle.
+    The first row has one pebble, the second row two pebbles,
+    the third row three pebbles, and so on.
+    The argument is NUMBER-OF-ROWS."
+
+      (let ((total 0)
+            (row-number 1))
+        (while (<= row-number number-of-rows)
+          (setq total (+ total row-number))
+          (setq row-number (1+ row-number)))
+        total))
+  #+end_src
+
+- After you installing ~triangle~ by evaluating the function, you can
+  try it out.  Here are two examples:
+
+  #+begin_src emacs-lisp
+    (triangle 4)
+    (triangle 7)
+  #+end_src
+
+- The sum of the first four numbers is 10 and the sum of the first
+  seven numbers is 28.
+
+*** Loop with a Decrementing Counter
+
+- Another common way to write a ~while~ loop is to write the test that
+  it determines whether a counter is greater than zero.  So long as
+  the counter is greater than zero, the loop is repeated.  But when
+  the counter is equal to or less than zero, the loop is stopped.  For
+  this to work, the counter has to start out greater than zero, ans
+  then be made smaller and smaller by form that is evaluated
+  repeatedly.
+
+- The template for a decrementing ~while~ loop looks like this:
+
+  #+begin_src emacs-lisp
+    (while (> counter 0)                ; true-or-false-test
+      body...
+      (setq counter (1- counter)))      ; decrementer
+  #+end_src
+
+  - [[Example with decrementing counter][Decrementing Example]]           More pebbles on the bench
+
+  - [[The parts of the function definition][Dec Example parts]]              The parts of the function definition
+
+  - [[Putting the function definition together][Dec Example altogether]]         Putting the function definition together
+
+**** Example with decrementing counter
+
+- To illustrate a loop with a decrementing counter, we will rewrite
+  the ~triangle~ function so the counter decreases to zero.
+
+- This is the reverse of the earlier version of the function.  In this
+  case, to find out how many pebbles are needed to make a triangle
+  with 3 rows, add the number of pebbles in the third row, 3. to the
+  number in the preceding row, 2, and then add the total of those two
+  rows to the row that precedes them, which is 1.
+
+- Likewise, to find the number of pebbles in a triangle with 7 rows,
+  add the number of pebbles in the seventh row, 7, to the number in
+  the preceding row, which is 6, and then add the total of those row
+  to the row that precedes them, which is 5, and so on.  As in the
+  previous example, each addition only involves adding two number, the
+  total of the rows already added up and the number of pebbles in the
+  row that is being added to the total.  This process of adding two
+  numbers is repeated again and again until there are no more pebbles
+  to add.
+
+- We know how many pebbles to start with: the number of pebbles in the
+  last row is equal to the number of rows.  If the triangle has seven
+  rows, the number of pebbles in the last row is 7.  Likewise, we know
+  how many pebbles are in the preceding row: it is one less than the
+  number in the row.
+
+**** The parts of the function definition
+
+- We start with three variables: the total amount of rows in the
+  triangle; the number of pebbles in a row; and the total number of
+  pebbles, which is what we want to calculate.  These variables can be
+  named ~number-of-rows~, ~number-of-pebbles-in-row~, and ~total~,
+  respectively.
+
+- Both ~total~ and ~number-of-pebbles-in-row~ are used only inside the
+  function and are declared with ~let~.  The initial value of ~total~
+  should,, of course, be zero.  However, the initial value of
+  ~number-of-pebbles-in-rows~ should be equal to the number of rows in
+  the triangle, since the addition will start with the longest row.
+
+- This means that the beginning of the ~let~ expression will look like
+  this:
+
+  #+begin_src emacs-lisp
+    (let ((total 0)
+      (number-of-pebbles-in-row number-of-rows))
+    body...)
+  #+end_src
+
+- The total number of pebbles can be found by repeatedly adding the
+  number of pebbles in a row to the total already found, that is, by
+  repeatedly evaluating the following expression:
+
+  #+begin_src emacs-lisp
+    (setq total (+ total number-of-pebbles-in-row))
+  #+end_src
+
+- After the ~number-of-pebbles-in-row~ is added to the ~total~, the
+  ~number-of-pebbles-in-row~ should be decremented by one, since the
+  next time the loop repeats, the preceding row will be added to the
+  total.
+
+- The number of pebbles in a preceding row is one less than the number
+  of pebbles in a row, so the built-in Emacs Lisp function ~1-~ can be
+  used to compute the number of pebbles in the preceding row.  This
+  can be done with the following expression:
+
+  #+begin_src emacs-lisp
+    (setq number-of-pebbles-in-row
+          (1- number-of-pebbles-in-row))
+  #+end_src
+
+- Finally, we know that the ~while~ loop should stop making repeated
+  additions when there are no pebbles in a row.  So the test for the
+  ~while~ loop is simply:
+
+  #+begin_src emacs-lisp
+(while (> number-of-pebbles-in-row 0)
+  #+end_src
+
+**** Putting the function definition together
+
+- We can put these expression together to create a function definition
+  that works.  However, on examination, we find that one of the local
+  variables is unneeded!.
+
+- The function definition looks like this:
+
+  #+begin_src emacs-lisp
+    ;;; First subtractive version.
+    (defun triangle (number-of-rows)
+      "Add up the number of pebbles in a triangle."
+      (let ((total 0)
+            (number-of-pebbles-in-row number-of-rows))
+        (while (> number-of-pebbles-in-row 0)
+          (setq total (+ total number-of-pebbles-in-row))
+          (setq number-of-pebbles-in-row
+                (1- number-of-pebbles-in-row)))
+        total))
+  #+end_src
