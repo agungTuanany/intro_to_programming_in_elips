@@ -6460,9 +6460,9 @@ Here is a brief summary of some recently introduced functions.
 
   - [[~while~][while]]                 Causing a stretch of code to repeat
 
-  - [[][dolist do-times]]
+  - [[Save your time: ~dolist~ and ~dotimes~][dolist dotimes]]
 
-  - [[][Recursion]]             Causing a function to call itself
+  - [[Recursion][Recursion]]             Causing a function to call itself
 
 ** ~while~
 
@@ -6497,7 +6497,7 @@ Here is a brief summary of some recently introduced functions.
 
   - [[Details of an Incrementing Loop][Incrementing Loop Details]]
 
-  - [[][Decrementing Loop]]             Repeat so long as test returns true
+  - [[Loop with a Decrementing Counter][Decrementing Loop]]                   Repeat so long as test returns true
 
 *** Looping with ~while~
 
@@ -7073,3 +7073,177 @@ Here is a brief summary of some recently introduced functions.
                 (1- number-of-pebbles-in-row)))
         total))
   #+end_src
+
+  As written, this function works.
+
+- However, we do not need ~number-of-pebbles-in-row~.
+
+- When the ~triangle~ function is evaluated, the symbol
+  ~number-of-rows~ will be bound to a number, giving it an initial
+  value.  That number can be changed in the body of the functions as
+  if it were a local variable, without any fear that such a change
+  will effect the value outside of the function.  This is a very
+  useful characteristic of Lisp; it means that he variable
+  ~number-of-rows~ can be used anywhere in the function where
+  ~number-of-pebbles-in-row~ is used.
+
+- Here is a second version of the function written a bit more cleanly:
+
+  #+begin_src emacs-lisp
+    (defun triangle (number)                ; Second version
+      "Return sum of numbers 1 through NUMBER inclusive."
+
+      (let ((total 0))
+        (while (> number 0)
+          (setq total (+ total-number))
+          (setq number (1- number))
+          total))
+  #+end_src
+
+- In brief, a properly written ~while~ loop will consist of three
+  parts:
+
+  1. A test will return false after the loop has repeated itself the
+     correct number if times.
+
+  2. An expression the evaluation of which will return the value
+     desired after being repeatedly evaluated.
+
+  3. An expression to change the value passed to the
+     true-or-false-test so that the test return false after the loop
+     has repeated itself the right number of times.
+
+** Save your time: ~dolist~ and ~dotimes~
+
+- In addition to ~while~, both ~dolist~ and ~dotimes~ provide for
+  looping.  Sometimes these are quicker to written than the equivalent
+  ~while~ loop.  Both are Lisp macros.  (See [[][Macros]] in The GNU
+  Emacs Lisp Reference Manual.)
+
+- ~dolist~ works like a ~while~ loop that CDRs down a list: ~dolist~
+  automatically shortens the list each time it loop--takes the CDR of
+  the list--and binds the CAR of each shorter version of the list to
+  the first arguments.
+
+- ~dotimes~ loops a specific number of times: you specify the number:
+
+  - [[The ~dolist~ Macro][dolist]]
+  - [[The ~dotimes~ Macro][dotimes]]
+
+*** The ~dolist~ Macro
+
+- Suppose, for example, you want to reserve a list, so that "first"
+  "second" "third" becomes "third" "second" "first".
+
+- In practice, you would use the ~reserve~ function, like this:
+
+  #+begin_src emacs-lisp
+(setq animals '(gazelle giraffe lion tiger))
+(reverse animals)
+  #+end_src
+
+- Here is hoe you could reverse the list using a ~while~ loop:
+
+  #+begin_src emacs-lisp
+    (setq animals '(gazelle giraffe lion tiger))
+
+    (defun reverse-list-with-while (list)
+      "Using while, reverse the order of LIST."
+      (let (value)      ; make sure lst starts empty
+        (while list
+          (setq value (cons (car list) value))
+          (setq list (cdr list)))
+        value))
+
+    (reverse-list-with-while animals)
+  #+end_src
+
+- And here is how you could use the ~dolist~ macro:
+
+  #+begin_src emacs-lisp
+(setq animals '(gazelle giraffe lion tiger))
+
+(defun reverse-list-with-dolist (list)
+"Using dolist. reverse the order of LIST."
+(let (value)    ; make sure list start empty
+(dolist (element list value)
+(setq value (cons element value)))))
+
+(reverse-list-with-dolist animals)
+  #+end_src
+
+- In info, you can place your cursor after the closing parenthesis of
+  each expression and type ~C-x C-e~; in each case, you should seeing
+
+  #+begin_src emacs-lisp
+    (tiger lion giraffe gazelle)
+  #+end_src
+
+  in the echo area.
+
+- For this example, the existing ~reverse~ function is obviously best.
+  The ~while~ loop is just like our first example (see [[][A ~while~
+  Loop and a List]]).  The ~while~ first checks whether the list has
+  elements; if so, construct a new list by adding the first element of
+  the list to the existing list (which in the first iteration of the
+  loop is ~nil~).  Since the second element is prepended in front of
+  the first element, and the third element is prepended in front of
+  the second element, the list is reserved.
+
+- In the expression using a ~while~ loop, the ~(setq list (cdr list))~
+  expression shortens the list, so the ~while~ loop eventually stops.
+  In addition it provides the ~cons~ expression with a new first
+  element by creating a new ans shorter list at each repetition of the
+  loop.
+
+- Like the example, the CAR of each shorter version of the list is
+  referred to using the symbol '~element~', the list itself is called
+  '~list~', and the value returned is called '~value~'.  The remainder
+  of the ~dolist~ expression is the body.
+
+- The ~dolist~ expression binds the CAR of each shorter version of the
+  list to ~element~ and then evaluates the body of the expression; and
+  repeats the loop.  The result is returned in ~value~.
+*** The ~dotimes~ Macro
+
+- The ~dotimes~ macro is similar to ~dolist~, except that it loops a
+  specific number of times.
+
+- The first argument to ~dotimes~ is assigned the number 0, 1, 2 and
+  so forth each time around the loop.  You need to provide the value
+  of the second argument, which is how many times the macro loops.
+
+- For example, the following binds the numbers form 0 up to, but not
+  including, the number 3 to the first argument, /number/, and then
+  construct a list of the three numbers.  (The first number is 0, the
+  second number is 1. and the third number is 2; this makes a total of
+  three numbers in all, starting with zero as the first number.)
+
+  #+begin_src emacs-lisp
+    (let (value)                ; otherwise a value is a void variable
+      (dotimes (number 3)
+        (setq value (cons number value)))
+      value)
+    ⇒ (2 1 0)
+  #+end_src
+
+
+- The way to use ~dotimes~ is to operate on some expression /number/
+  number of times and then return the result, either as a list or an
+  atom.
+
+- Here is an example of a ~defun~ that uses ~dotimes~ to add up the
+  number of pebbles in a triangle.
+
+  #+begin_src emacs-lisp
+    (defun triangle-using-dotimes (number-of-rows)
+      "Using `dotimes', add up the number of pebbles in a triangle."
+      (let ((total 0))          ; otherwise a total is a void variable
+        (dotimes (number number-of-rows)
+          (setq total (+ total (1+ number))))
+        total))
+
+(triangle-using-dotimes 4)
+  #+end_src
+
+** Recursion
