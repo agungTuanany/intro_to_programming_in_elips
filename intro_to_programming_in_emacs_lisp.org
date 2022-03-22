@@ -91,6 +91,9 @@
 - <<<digression>>> : a temporary departure from which the main subject
   in speech or writing; synonyms: apostrophe, divagation
 
+- <<<deferment>>> : the action or fact of putting something off to a
+  later time; postpone.
+
 *** Notes
 
 - A list in Lisp consist of parentheses surrounding atoms separated by
@@ -7269,11 +7272,11 @@ Here is a brief summary of some recently introduced functions.
 
   - [[Recursion Example using ~cond~][Recursion with cond]]
 
-  - [[][Recursive pattern]]                     Often used templates
+  - [[Recursive Patterns][Recursive pattern]]                     Often used templates
 
-  - [[][No Deferment]]                          Don't store up work ...
+  - [[Recursion without Deferments][No Deferment]]                          Don't store up work ...
 
-  - [[][No deferment solution]]
+  - [[No Deferment Solution][No deferment solution]]
 
 *** Building Robots: Extending the Metaphor
 
@@ -7672,3 +7675,378 @@ Here is a brief summary of some recently introduced functions.
   equal to 0, it returns 1 if the number is 1 and its evaluates ~(+
   number (triangle-using-cond (1- number)))~ if the number is greater
   than 1.
+
+*** Recursive Patterns
+
+- Here are three common recursive pattern.  Each involve a list.
+  Recursion does not need to involve list, but Lisp is designed for
+  lists and this provides a sense of its primal capabilities.
+
+  - [[Recursive Pattern: ~every~][Every]]
+  - [[Recursive Pattern: ~accumulate~][Accumulate]]
+  - [[Recursive Pattern: ~keep~][Keep]]
+**** Recursive Pattern: ~every~
+
+- In the ~every~ recursive pattern, an action is performed on every
+  element of a list.
+
+- The basic pattern is:
+
+  - If a list be empty, return ~nil~
+
+  - Else, act on the beginning of the list (the CAR of the list)
+
+    - through a recursive call by the function on the rest (the CDR)
+      of the list,
+
+    - and, optionally, combine the acted-in element, using ~cons~,
+      with the results of acting on the rest.
+
+- Here is an example:
+
+  #+begin_src emacs-lisp
+    (defun square-each (number-list)
+      "Square each of a NUMBER LIST, recursively."
+      (if (not number-list)                     ; do-again-test
+          nil
+        (cons
+         (* (car number-list) (car number-list))
+         (square-each (cdr number-list)))))     ; next-step-expression
+
+    (square-each '(1 2 3))
+        ⇒ (1 4 9)
+    (square-each '(4 5 6))
+        ⇒ (16 35 36)
+  #+end_src
+
+- If the ~number-list~ is empty, do nothing.  But if it has content,
+  construct a list combining the square of the first number in the
+  list with the result of the recursively call.
+
+- (The example follows the pattern exactly: ~nil~ is returned if the
+  numbers' list is empty.  In practice, you would write the
+  conditional so it carries out the action when the numbers' list is
+  not empty.)
+
+- The ~print-elements-recursively~ function (see [[][Recursive with a
+  list]]) is another example of an ~every~ pattern, except in this
+  case, rather than bring the result together using ~cons~, we print
+  each element of output.
+
+- The ~print-elements-recursively~ function looks like this:
+
+  #+begin_src emacs-lisp
+    (setq animals '(gazelle giraffe lion tiger))
+
+    (defun print-elements-recursively (list)
+      "Print each element of LIST on a line of its own.
+    Uses recursion."
+      (when list
+        (print (car list))
+        (print-elements-recursively
+         (cdr list))))
+
+    (print-elements-recursively animals)
+  #+end_src
+
+- The pattern for ~print-elements-recursively~ is:
+
+  - When the list is empty, do nothing.
+
+  - But when the list has at least one element
+
+    - act on the beginning of the list (the CAR of the list)
+
+    - and make a recursive call on the rest (the CDR) of the list
+
+**** Recursive Pattern: ~accumulate~
+
+- Another recursive pattern is called the ~accumulate~ pattern.  In
+  the ~accumulate~ recursive pattern, an action is performed on every
+  element of a list and the result of that action is accumulated with
+  the results of performing the action on the other elements.
+
+- This is very like the ~every~ pattern using ~cons~, except that
+  ~cons~ is not used, but some other combiner.
+
+- The pattern is:
+
+  - If a list empty, return zero or some other constant.
+
+  - Else, act on the beginning of the list (the CAR of the list),
+
+    - and combine that acted-on element, using ~+~ or some other
+      combination function, with
+
+    - a recursive call by the function on the rest (the CDR) of the
+      list.
+
+- Here is an example:
+
+  #+begin_src emacs-lisp
+    (defun add-elements (numbers-list)
+      "Add the elements of NUMBER-LIST together."
+      (if (not numbers-list)
+          0
+        (+ (car numbers-list) (add-elements (cdr numbers-list)))))
+
+    (add-elements '(1 2 3 4))
+        ⇒ 10
+  #+end_src
+
+- See [[][Making a List of Files]], for an example of the accumulate
+  pattern.
+
+**** Recursive Pattern: ~keep~
+
+- A third recursive pattern is called the ~keep~ pattern.  In the
+  ~keep~ recursive pattern, each element of a list is tested; the
+  element is acted on and the results are kept only if the element
+  meets a criterion.
+
+- Again, this is very like the ~every~ pattern, except the element is
+  skipped unless it meets a criterion.
+
+- The pattern has three parts:
+
+  - If a list be empty, return ~nil~
+
+  - Else, if the beginning of the list (the CAR of the list) passes a
+    test
+
+    - act on that element and combine it, using ~cons~ with
+
+    - recursive call by the function on the rest (the CDR) of the list.
+
+  - Otherwise, if the beginning of he list (the CAR of the list) fails
+    the test
+
+    - skip on that element,
+
+    - and, recursively call the function on the rest (the CDR) of the list.
+
+- Here is an example that uses ~cond~:
+
+  #+begin_src emacs-lisp
+    (defun keep-three-letter-words (word-list)
+      "Keep three letter word in WORD-LIST."
+
+      (cond
+       ;; First do-again-test: stop-condition
+       ((not word-list) nil)
+
+       ;; Second do-again-test: when to acte
+       ((eq 3 (length (symbol-name (car word-list))))
+        ;; combine acted-on element with recursive call on shorter list
+        (cons (car word-list) (keep-three-letter-words (cdr word-list))))
+
+       ;; Third do-again-test: when to skip element;
+       ;;   recursively vall shorter list with next-step expression
+       (t (keep-three-letter-words (cdr word-list)))))
+
+    (keep-three-letter-words '(one two three four five six))
+        ⇒ (one two six)
+  #+end_src
+
+*** Recursion without Deferments
+
+- Let's consider again what happens with the ~triangle-recursively~
+  function.  We will find that the intermediate calculations are
+  deferred until all can be done.
+
+- Here is the function definition:
+
+  #+begin_src emacs-lisp
+    (defun triangle-recursively (number)
+      "Return the sum of the numbers 1 through NUMBER inclusive.
+    Uses recursion."
+      (if (= number 1)                  ; do-again-test
+          1                             ; then-part
+        (+ number                       ; else-part
+           (triangle-recursively        ; recursive call
+            (1- number)))))             ; next-step-expression
+  #+end_src
+
+- What happen when we call this function with an argument of 7?
+
+- The first instance of the ~triangle-recursively~ function adds the
+  number 7 to the value returned by a second instance of
+  ~triangle-recursively~, an instance that has been passed an argument
+  of 6, that is to say, the first calculation is:
+
+  #+begin_src emacs-lisp
+    (+ 7 (triangle-recursively 6))
+  #+end_src
+
+- The first instance of the ~triangle-recursively~--you may want to
+  think of it as a little robot--cannot complete its jobs.  It must
+  hand off the calculation for ~(triangle-recursively 6)~ to a second
+  instance of the program, to a second robot.  This second individual
+  is completely different from the first one; it is, in the jargon, a
+  "different instantiation".  Or, put another way, it is a different
+  robot.  It is the same model as the first; it calculates triangle
+  numbers recursively; but it has a different serial number.
+
+- And what does ~(triangle-recursively 6)~ return? It returns the
+  number 6 added to the value returned by evaluating
+  ~triangle-recursively~ with an argument of 5.  Using the robot
+  metaphor, it asks yet another robot to help it.
+
+- Now the total is:
+
+  #+begin_src emacs-lisp
+    (+ 7 6 (triangle-recursively 5))
+  #+end_src
+
+- And what happen next?
+
+  #+begin_src emacs-lisp
+    (+ 7 6 5 (triangle-recursively 4))
+  #+end_src
+
+- Each time ~triangle-recursively~ is called, except for the last
+  time, it creates another instance of the program--another robot--ans
+  asks it to make a calculation.
+
+- Eventually, the full addition is set up and performed:
+
+  #+begin_src emacs-lisp
+    (+ 7 6 5 4 3 2 1)
+  #+end_src
+
+- This design for the function defers the calculation of the first
+  step until the second can be done, and defers that until the third
+  can be done, and so on.  Each deferment means the computer must
+  remember what is being waited on.  This is not a problem when there
+  are only a few steps, as in this example.  But it can be a problem
+  when there are more steps.
+
+*** No Deferment Solution
+
+- The solution to the problem of deferred operations is to write in a
+  manner that does not defer operation (the phrase /tail recursive/ is
+  used to describe such a process, one that uses constant space).
+  This requires writing to a different pattern, often one that
+  involves writing two function definitions, an initialization
+  function and a helper function.
+
+- Here are two function definitions for adding up numbers.  They are
+  so simple.  I find them hard to understand.
+
+  #+begin_src emacs-lisp
+    (defun triangle-initialization (number)
+      "Return the sum of the numberrs 1 through NUMBER inclusive.
+    This initialization component of a two function
+    duo that uses recursion."
+      (triangle-recursive-helper 0 0 number))
+  #+end_src
+
+  #+begin_src emacs-lisp
+    (defun triangle-recursive-helper (sum counter number)
+      "Return SUM, using COUNTER, through NUMBER inclusive.
+    This is the helper component of a two function duo
+    that uses recursion."
+      (if (> counter number)
+          sum
+        (triangle-recursive-helper (+ sum counter)  ; sum
+                                   (1+ counter)     ; counter
+                                   number)))        ; number
+  #+end_src
+
+- Install both function definitions by evaluating them, then call
+  ~triangle-initialization~ with 2 rows:
+
+  #+begin_src emacs-lisp
+    (triangle-initialization 2)
+        ⇒ 3
+  #+end_src
+
+- The initialization functions calls the first instance of the helper
+  function with three arguments: zero, zero, and a number which is the
+  number of rows in the triangle.
+
+- The first two arguments passed to the helper function are
+  initialization values.  These values are changed when
+  ~triangle-recursive-helper~ invokes new instances.  (The jargon is
+  mildly confusing: ~triangle-recursive-helper~ uses a process that is
+  iterative in a procedure that is recursive.  The process is called
+  iterative because the computer need only record the three values,
+  ~sum~, ~counter~, and ~number~; The procedure is recursive because
+  the function calls itself.  On the other hand, both the process and
+  the procedure used by ~triangle-recursively~ are called recursive.
+  The word "recursive" has different meanings in the two contexts.)
+
+- Let's see what happen when we have a triangle that has one row.
+  (This triangle will have one pebble in it!)
+
+- ~triangle-initialization~ will call its helper with the arguments ~0
+  0 1~.  That function will run the conditional test whether ~(>
+  counter number)~:
+
+  #+begin_src emacs-lisp
+    (> 0 1)
+  #+end_src
+
+
+- and find that result is false, so it will invoke the else-part of
+  the ~if~ clause:
+
+  #+begin_src emacs-lisp
+    (triangle-recursive-helper
+     (+ sim counter)            ; sum plus counter ⇒ sum
+     (1+ counter)               ; increment counetr ⇒ counter
+     number)                    ; number stays the same
+  #+end_src
+
+- Which will first compute:
+
+  #+begin_src emacs-lisp
+    (triangle-recursive-helper (+ 0 0)  ; sum
+                               (1+ 0)   ; counter
+                               1)       ; number
+
+    ;;which is:
+    (triangle-recursive-helper 0 1 1)
+  #+end_src
+
+- Again, ~(> counter number)~ will be false, so again, the Lisp
+  interpreter will evaluate ~triangle-recursive-helper~, creating a
+  new instance with new arguments.
+
+- This new instance will be;
+
+  #+begin_src emacs-lisp
+    (triangle-recursive-helper
+     (+ sum counter)         ; sum plus counter ⇒ sum
+     (1+ counter)            ; increment counter ⇒ counter
+     (number)                ; number stays the same
+
+     ;; which is
+     (triangle-recursive-helper 1 2 1)
+  #+end_src
+
+- In this case, the ~(> counter number)~ test will be true!  So the
+  instance will return the value of the sum, which will be 1, as
+  expected.
+
+- Now, let's pass ~triangle-initialization~ an argument of 2, to find
+  out how many pebbles there are in a triangle with two rows.
+
+- That function calls ~(triangle-recursive-helper 0 0 2)~.
+
+- In stages, the instance called will be:
+
+  #+begin_src emacs-lisp
+                            ;;sum        counter         number
+    (triangle-recursive-helper 0             1               2)
+    (triangle-recursive-helper 1             2               2)
+    (triangle-recursive-helper 3             3               2)
+
+  #+end_src
+
+- When the last instance is called, the ~(> counter number)~ test will
+  be true, so the instance will return the value of ~sum~, which will
+  be 3.
+
+- This kind of pattern helps when you are writing functions that can
+  use many resource in a computer.
