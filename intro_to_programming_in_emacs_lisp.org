@@ -4630,7 +4630,7 @@ Here is a brief summary of the various functions discussed in this chapter.
   rather than the first element.
 
 - (To see how to change the last element of a list, look to [[][The
-  ~kill~new~ function~]] which uses the ~nthcdr~ and ~setcdr~
+  ~kill~new~ function]] which uses the ~nthcdr~ and ~setcdr~
   functions.)
 
 - To see how this works, set the value of the variable to a list of
@@ -4763,7 +4763,7 @@ Here is a brief summary of the various functions discussed in this chapter.
   - [[The Body of ~zap-to-char~][zap-to-char body]]                              A short overview
   - [[The ~search-forward~ Function][search forward]]                How to search for a string
   - [[The ~progn~ Special Form][prongn]]                                 The ~progn~ special form
-  - [[Summing up ~zap-to-char~][Summing up zap-to-char]        Using ~point~ and ~search-forward~
+  - [[Summing up ~zap-to-char~][Summing up zap-to-char]]       Using ~point~ and ~search-forward~
 
 *** The complete ~zap-to-char~ Implementation
 
@@ -8037,10 +8037,10 @@ Here is a brief summary of some recently introduced functions.
 - In stages, the instance called will be:
 
   #+begin_src emacs-lisp
-                            ;;sum        counter         number
-    (triangle-recursive-helper 0             1               2)
-    (triangle-recursive-helper 1             2               2)
-    (triangle-recursive-helper 3             3               2)
+                            ;;sum  counter  number
+    (triangle-recursive-helper 0       1        2)
+    (triangle-recursive-helper 1       2        2)
+    (triangle-recursive-helper 3       3        2)
 
   #+end_src
 
@@ -8050,3 +8050,140 @@ Here is a brief summary of some recently introduced functions.
 
 - This kind of pattern helps when you are writing functions that can
   use many resource in a computer.
+
+
+* Regular Expression Searches
+
+- Regular expression searches are used extensively in GNU Emacs. The
+  two functions, ~forward-sentence~ and ~forward-paragraph~,
+  illustrate these searches well.  They use regular expressions to
+  find where to move point.  The phrase "regular expression" is often
+  written as "regexp".
+
+- Regular expression searches are describes in [[][Regular Expression
+  Search]] in the GNU Emacs Manual, as ell as in [[][Regular
+  Expression]] in The GNU Emacs Lisp Reference Manual.  In writing
+  this chapter, I am presuming that you have at least a mild
+  acquaintance with them.  The major point to remember is that regular
+  expressions permit you to search for patterns as well as for literal
+  string or characters.  For example, the code in ~forward-sentence~
+  searches for the pattern of possible characters that could mark the
+  end of the sentence, and moves point to that spot.
+
+- Before looking at the code for the ~forward-sentence~ function, it
+  is worth considering what the pattern that marks the end of a
+  sentence must be.  The pattern is discussed in the next section;
+  following that is a description of the regular expression search
+  function, ~re-search-forward~.  The ~forward-sentence~ function
+  describe in the section following.  Finally, the ~forward-paragraph~
+  function is described in the last section of this chapter.
+  ~forward-paragraph~ is a complex function that introduces several
+  new features.
+
+  - [[The Regular Expression for ~sentence-end~][sentence-end]]                   The regular expression for ~sentence-end~
+
+  - [[][re-search-forward]]              Very similar to ~search-forward~
+
+  - [[][forward-sentence]]               A straightforward example of regexp search
+
+  - [[][forward-paragraph]]              A somewhat complex example
+
+  - [[][Regexp Review]]
+
+** The Regular Expression for ~sentence-end~
+
+
+- The symbol ~sentence-end~ is bound to the pattern that marks the end
+  of a sentence.  What should this regular expression be?
+
+- Clearly, a sentence may be ended by a period, a question mark, or an
+  exclamation mark.  Indeed, in English, only clauses that end with
+  one of those three characters should be considered the end of a
+  sentence.  This means that the pattern should include the character
+  set:
+
+  #+begin_src emacs-lisp
+    [.?!]
+  #+end_src
+
+- However, we do not want ~forward-sentence~ merely to jump a period,
+  a question mark, or an exclamation mark, because such a character
+  might be used in the middle of a sentence.  A period, for example,
+  is used after abbreviations.  So other information is needed.
+
+- According to convention, you type two spaces after every sentence,
+  but only one space after a period, a question mark, or an
+  exclamation mark in the body of a sentence.  So a period, a question
+  mark, or an exclamation mark followed by two spaces is good
+  indicator of an end of sentence.  However, in a file, the two spaces
+  may instead be a tab or the end of a line.  This is means that the
+  regular expression should includes these three items as
+  alternatives.
+
+- This group of alternatives will look like this:
+
+  #+begin_src emacs-lisp
+    \\($\\| \\|  \\)
+           ^   ^^
+          TAB  SPC
+  #+end_src
+
+- Here, '~$~' indicates the end of the line, and I have pointed out
+  where tab and two spaces are inserted in the expression.  Both are
+  inserted by putting the actual characters into the expression.
+
+- Two backslashes, '~\\~', are required before the parentheses and
+  vertical bars: the first backslashes quotes the following
+  backslashes in Emacs; and the second indicates that the following
+  character, the parenthesis or the vertical bar, is special.
+
+- Also, a sentence may be followed by one or more carriage returns,
+  like this:
+
+  #+begin_src emacs-lisp
+    [
+     ]*
+  #+end_src
+
+- Like tabs and spaces, a carriage returns is inserted into a regular
+  expression by inserting it literally.  The asterisk indicates that
+  the ~RET~ is repeated zero or more times.
+
+- But a sentence end does not consist only of a period, a question
+  mark or an exclamation mark followed by appropriate space: a closing
+  quotation mark or a closing brace of some kind my precede the space.
+  Indeed more than one such mark or brace may precede the space.
+  These require a expression that looks like this:
+
+  #+begin_src emacs-lisp
+    []\"')}]*
+  #+end_src
+
+- In this expression, the first '~]~' is the first character in the
+  expression; the second character is '~"~', which is precedes by a
+  '~\~' to tell Emacs the '~"~' is /not/ special.  The last three
+  characters are '~'~','~)~', and '~}~'.
+
+- all this suggest what the regular expression pattern for matching
+  the end of a sentence should be; and, indeed, if we evaluate
+  ~sentence-end~ we find that it returns the following value:
+
+  #+begin_src emacs-lisp
+    sentence-end
+    ⇒ "[.?!][]\"')}]*\\($\\|     \\|  \\)[
+    ]*"
+  #+end_src
+
+- (Well, not in GNU Emacs 22; that is because of an effort to make the
+  process simpler and to handle more glyph and languages.  When the
+  value of ~sentence-end~ is ~nil~, then use the value defined by the
+  function ~sentence-end~.  (Here is use of the difference between a
+  value and a function in Emacs Lisp.)  The function returns a value
+  constructed from the variable ~sentence-end-base~,
+  ~sentence-end-double-space~, ~sentence-end-without-period~, and
+  ~sentence-end-without-space~.  The critical variable is
+  ~sentence-end-base~; its global value is similar to the one
+  described above but it also contains two additional quotation marks.
+  These have differing degrees of curliness.  The
+  ~sentence-end-without-period~ variable, when true, tells Emacs that
+  a sentence may end without a period, such as text in Thai.)
