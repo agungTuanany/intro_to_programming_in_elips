@@ -8941,14 +8941,11 @@ Here is a brief summary of some recently introduced functions.
   illustrates the use of regular expression searches through the
   construction of word count commands using ~while~ loops and recursion.
 
-
     - [[Counting words][Why Count Words]]
 
     - [[The ~count-words-example~ Function][count-words-example]]         Use a regexp, but find a problem
 
-    - [[][recursive-count-words]]       Start with case of no words in region
-
-    - [[][Counting Exercise]]
+    - [[Count Words Recursively][recursive-count-words]]       Start with case of no words in region
 
 ** Counting words
 
@@ -9326,6 +9323,287 @@ Here is a brief summary of some recently introduced functions.
                 ((= 1 count)
                  (message
                   "The region has 1 word."))
+                (t
+                 (message
+                  "The region has %d words." count))))))
+  #+end_src
+
+** Count Words Recursively
+
+- You can write the function for counting words recursively as well
+  with a ~while~ loop.  Let's see how this is done.
+
+- First, we need to recognize that the ~count-words-example~ function
+  has three jobs: It sets up the appropriate conditions for counting
+  to occur, it counts the words in the region; and it sends a message
+  to the user telling how many words there are.
+
+- If we write a single recursive function to do everything, we will
+  receive a message for every recursive call.  If the region contains
+  13 words, we will receive thirteen messages, one right after the
+  other.  We don't want this!  Instead, we must write two functions to
+  do the job, one of which (the recursive function) will be used
+  inside of the other.  One function will set up the conditions and
+  display the message; the other will return the word count.
+
+- Let us start with the function that causes the message to be
+  displayed.  We can continue to call this ~count-words-example~.
+
+- This is the function that the user will call.  It will be
+  interactive.  Indeed, it will be similar to our previous versions of
+  this function, except that it will call ~recursive-count-words~ to
+  determine how many words are in the region.
+
+- We can readily construct a template for this function, based on our
+  previous versions:
+
+  #+begin_src emacs-lisp
+    ;; Recursive version; uses regular expression search
+    (defun count-wors-example (beginning end)
+      "documentation..."
+      (interactive-expression...)
+
+    ;;; 1. Set up appropiate conditions.
+      (explanatory message)
+      (set-up funtions....
+
+    ;;; 2. Count the words.
+         recursive call
+
+    ;;; 3. Send a messagea to the user.
+        message providing word count))
+  #+end_src
+
+- The definition looks straightforward, except that somehow the cunt
+  returned by the recursive call must be passed to the message
+  displaying the word count.  A little though suggests that this can
+  be done by making use of a ~let~ expression: we can bind a variable
+  in the varlist of a ~let~ expression to the number of words in the
+  region, as returned by the recursive call; and then the ~cond~
+  expression, using binding, can display the value to the user.
+
+- Often, one thinks of the binding within a ~let~ expression as
+  somehow to the primary work of a function.  But in this case, what
+  you might consider the primary job of the function, counting words,
+  is done within the ~let~ expression.
+
+- Using ~let~, the function definition looks like this:
+
+  #+begin_src emacs-lisp
+    (defun count-words-example (beginning end)
+      "Print number of words in the region."
+      (interactive "r")
+
+    ;;; 1. Set up appropiate conditions.
+      (message "Counting words in region ...")
+      (save-excursion
+        (goto-char beginning)
+
+    ;;; 2. Count the words.
+        (let ((count (recursive-count-words end)))
+
+    ;;; 3. Send a message to the user
+          (cond ((zerop count)
+                 (message
+                  "The region does NOT have any words."))
+                ((= 1 count)
+                 (message
+                  "The region has 1 word."))
+                (t
+                 (message
+                  "The region has %d words." count))))))
+  #+end_src
+
+- Next, we need to write the recursive counting function.
+
+- A recursive function has at least three parts: the
+  do-again-test. the next-step-expression, and the recursive call.
+
+- The do-again-test determines whether the function will or will not
+  be called again.  Since we are counting words in a region and can
+  use a function that moves that point forward for every word, the
+  do-again-test can check whether point is still within the region.
+  The do-again-test should find the value of point and determine
+  whether point is before, at, or after the value of the end of the
+  region.  We can use the ~point~ function to locate point.  Clearly,
+  we must pass the value of the end of the region to the recursive
+  counting function as an argument.
+
+- In addition, the do-again-test should also test whether the search
+  finds a word.  If it does not, the function should not call itself
+  again.
+
+- The next-step-expression changes a value so that when the recursive
+  function is supposed to stop calling itself, it stops.  More
+  precisely, the next-step-expression changes a value so that at the
+  right time, the do-again-test stops the recursive function calling
+  itself again.  In this case, the next-step-expression can be the
+  expression that moves point forward, word by word.
+
+- The third part of a recursive function is the recursive call.
+
+- Somewhere, we also need a part that does the work of the function, a
+  part that does the counting.  A vital part!
+
+- But already, we have an outline of the recursive counting function:
+
+  #+begin_src emacs-lisp
+    (defun recursive-count-words (region-end)
+      "documentation..."
+      do-again-test
+      next-step-expression
+      recusive-call)
+  #+end_src
+
+- Now we need to fill in the slots.  Let's start with the simple case
+  first: if point is at or beyond the end of the region, there cannot
+  be any words in the region, so the function should return zero.
+  Likewise, if the search fails, there are no words to count, so the
+  function should return zero.
+
+- The do-again-test is the true-or-false test of an ~if~ clause.
+  Clearly, if the do-again-test succeeds, the then-part of the ~if~
+  clause should call the function again; but if it fails, the
+  else-part should return zero since either point is outside the
+  region or the search failed because there were no words to find.
+
+- But before considering the recursive call, we need to consider the
+  next-step-expression.  What is it?  Interestingly, it is the search
+  part of the do-again-test.
+
+- In outline, then, the body of the ~recursive-count-words~ function
+  looks like this:
+
+  #+begin_src emacs-lisp
+    (if do-again-test-and-next-step-combined
+        ;; then
+        recursive-call-returning-count
+      ;; else
+      return-zero)
+  #+end_src
+
+- How to incorporate the mechanism that count?
+
+- If you are not used to writing recursive functions, a question like
+  this can be troublesome.  But it can and should be approached
+  systematically.
+
+- We know that the counting mechanism should be associated in some way
+  with the recursive call.  Indeed, since the next-step-expression
+  moves point forward by one word, and since a recursive call is made
+  for each word, the counting mechanism must be an expression that
+  adds one to the value returned by a call to ~recursive-count-words~.
+
+- Consider several cases:
+
+  + If there are two words in the region, the function should return a
+    value resulting from adding one to the value returned when it
+    counts the first word, plus the number returned when it counts the
+    remaining words in the region, which in this case is one.
+
+  + If there is one word in the region, the function should return a
+    value resulting from adding one to the value returned when it
+    counts that words, plus the number returned when it counts the
+    remaining words in the region, which in this case is zero.
+
+  + If there are no words in the region, the function should return zero.
+
+- Form the sketch we can see that the else-part of the ~if~ returns
+  zero for the case of no words.  This means that the then-part of the
+  ~if~ must return a value resulting from adding one to the value
+  returned from a count of the remaining words.
+
+- The expression will look like this, where ~1+~ is a function that
+  adds one to its argument.
+
+  #+begin_src emacs-lisp
+    (1+ (recursive-count-words (region-end))
+  #+end_src
+
+- The whole ~recursive-count-words~ function will then look like this:
+
+  #+begin_src emacs-lisp
+    (defun recursive-count-words (region-end)
+      "documentation..."
+
+    ;;; 1. do-again-test
+      (if (and (> (point) region-end)
+               (re-search-forward "\\w+\\W*" region-end t))
+
+    ;;; 2. then-part: the recursive call
+          (1+ (recursive-count-words (region-end))
+
+    ;;; 3. else-part
+              0))
+  #+end_src
+
+- Let's examine how this works:
+
+- If there are no words in the region, the else part of the ~if~
+  expression is evaluated and consequently the function returns zero.
+
+- If there is one word in the region, the value of point is less than
+  the value of ~region-end~ and the search succeeds.  In this case,
+  the true-or-false-test of the ~if~ expression test true, and the
+  then-part of the ~if~ expression is evaluated.  The counting
+  expression is evaluated.  This expression returns a value (which
+  will be the value returned by the whole function) that is the sum of
+  one added to the value returned by a recursive call.
+
+- Meanwhile, the next-step-expression has caused point to jump over
+  the first (and in this case only) word in the region.  This means
+  that when ~(recursive-count-words region-end)~ is evaluated a second
+  time, as a result of the recursive call, the value of point will be
+  equal to or greater than the value of region end.  So this time,
+  ~recursive-count-words~ on a region containing the remaining
+  word--that is, it adds one to one, producing two, which is the
+  correct amount.
+
+- Similarly, if there are three words in the region, the first call to
+  ~recursive-count-words~ returns one added to the value returned by
+  calling ~recursive-count-words~ on a region containing remaining
+  two-words--and so on and so on.
+
+- The recursive function:
+
+  #+begin_src emacs-lisp
+    (defun recursive-count-words (region-end)
+      "Number of words between point and REGION-END."
+
+    ;;; 1. do-again-test
+      (if (and (< (point) region-end)
+               (re-search-forward "\\w+\\W*" region-end t))
+
+    ;;; 2. then-part: the recursive call
+          (1+ (recursive-count-words regio-end))
+
+    ;;; 3. else-part
+        0))
+  #+end_src
+
+- The wrapper:
+
+  #+begin_src emacs-lisp
+    ;;; Recursive version
+    (defun count-words-example (beginning end)
+      "Print number of words in the region.
+
+    Words are defined as at least one word-conituent
+    character followed by at least one character that is
+    not a word-constituent.  The buffer's syntax table
+    determine which characters these are."
+
+      (interactive "r")
+      (message "Counting words in region ... ")
+      (save-excursion
+        (goto-char beginning)
+        (let ((count (recursive-count-words end)))
+          (cond ((zerop count)
+                 (message
+                  "The region does NOT have any words."))
+                ((= 1 count)
+                 (message
+                  "The region has 1 words."))
                 (t
                  (message
                   "The region has %d words." count))))))
