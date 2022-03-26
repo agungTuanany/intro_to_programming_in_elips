@@ -9608,3 +9608,222 @@ Here is a brief summary of some recently introduced functions.
                  (message
                   "The region has %d words." count))))))
   #+end_src
+
+
+* Counting Words in a ~defun~
+
+- Our next object is to count the number of words in a function
+  definition.  Clearly, this can be done using some variant of
+  ~count-words-example~.  See [[Counting via Repetition Regexps]]. If we
+  are just going to count the words in one definition, it easy enough
+  to mark the definition with the ~C-M-h (mark-defun)~ command, and
+  then call ~count-words-example~.
+
+- However, I am more ambitious: I want to count the words ans symbols
+  in every definition in the Emacs sources and then print a graph that
+  shows how many function there are of each length: how many contain
+  40 to 49 words or symbols, how many contain 50 to 59 words or
+  symbols, and so on.  I have often been curious how long a typical
+  function is, and this will tell.
+
+  - [[Divide and Conquer][Divide and Conquer]]
+
+  - [[What to count?][Words and Symbols]]                     What to count?
+
+  - [[What constituent a Word or Symbols?][Syntax]]                                What constitutes a word or symbol?
+
+  - [[The ~count-words-in-defun~ Function][count-words-in-defun]]                  Very like ~count-words-example~
+
+  - [[][Several defun]]                         Counting several defuns in a file
+
+  - [[][Find a File]]                           Do you want to look at a file?
+
+  - [[][length-list-file]]                      A list of the length of many definitions
+
+  - [[][Several length]]                        Counting in definitions in different files
+
+  - [[][Several files recursively]]             Recursively counting in different files
+
+  - [[][Prepare the data]]                      Prepare the data for display in a graph
+
+** Divide and Conquer
+
+- Described in one phrase, the histogram project is daunting; but
+  divided into numerous small steps, each of which we can take one at
+  a time, the project becomes less fearsome.  Let us consider what the
+  steps must be:
+
+  - First, write a function to count the words in one definition.
+    This include the problem of handling symbols as well as words.
+
+  - Second, write a function to list number of words in each function
+    in a file.  This function can use the ~count-words-in-defun~
+    function.
+
+  - Third, write a function to list the number of words in each
+    function in each of several files.  This entails automatically
+    finding the various files, switching to them, and counting the
+    words in the definitions within them.
+
+  - Fourth, write a function to convert the list of numbers that we
+    created in step three to a form that will be suitable for printing
+    as a graph.
+
+  - Fifth, write a function to print the results as a graph.
+
+- This is quite a project!  But if we take each step slowly, it will
+  not be difficult.
+** What to count?
+
+- When we first start to thinking about how to count the words in a
+  function definition, the first question is (or ought to be) what are
+  we going to count?  When we speak of "words" with respect to a Lisp
+  function definition, we are actually speaking, in large part, of
+  symbols. For example, the following ~multiply-by-seven~ function
+  contains the five symbols ~defun~, ~multiply-by-seven~, ~number~,
+  ~*~, and ~7~.  In addition, in the documentation string, it contains
+  the four words '~Multiply~', '~NUMBER~', '~by~', and ~'seven'~.  The
+  symbol '~number~' is repeated, so the definition contains a total of
+  ten words and symbols.
+
+  #+Begin_src emacs-lisp
+    (defun multiply-by-seven (number)
+      "Multiply NUMBER by seven."
+      (* 7 number))
+  #+end_src
+
+- However, if we mark the ~multiply-by-seven~ definition with ~C-M-h
+  (mark-defun)~, and then call ~count-words-example~ on it, we will
+  find that ~count-words-example~ claims the definitions has eleven
+  words, not ten! Something wrong!.
+
+- The problem is twofold: ~count-words-example~ does not count '~*~'
+  as a word, and it counts the single symbol, ~multiply-by-seven~ as
+  containing three words.  The hyphens are treated as if they were
+  interword spaces rather than intraword connectors:
+  '~multiply-by-seven~' is counted as if it were written '~multiply by
+  seven~'.
+
+- The cause of this confusion is the regular expression search within
+  the ~count-words-example~ definition that moves point forward word
+  by word.  In the canonical version of ~count-words-example~ the
+  regexp is:
+
+  #+begin_src emacs-lisp
+    "\\w+\\W*"
+  #+end_src
+
+- This regular expression is a pattern defining one or more word
+  constituent characters possibly followed by one ore more characters
+  that are not word constituents.  What is mean by "word constituent
+  characters" brings us to the issue of syntax, which is worth a
+  section of its own.
+
+** What constituent a Word or Symbols?
+
+- Emacs treats different characters as belonging to different /syntax
+  categories/.  For example, the regular expression '~\\w+~', is a
+  pattern specifying one or more /word constituent/ characters.  Word
+  constituent characters are members of one syntax category.  Other
+  syntax categories include the class of punctuation characters, such
+  ad the period and the comma, and the class of whitespace characters,
+  such as the blank space and the tab character.  (For more
+  information, see [[][Syntax Tables]] In The GNU Emacs Lisp Reference
+  Manual.)
+
+- Syntax tables specify which categories.  Usually, a hyphen is not
+  specified as a word constituent character.  Instead, it specified as
+  being in the class of characters that are part of symbol names but
+  not words.  This means that the ~count-words-example~ function
+  treats it in the same way it treats an interword white space, which
+  is why ~count-words-example~ counts '~multiply-by-seven~' as three
+  words.
+
+- There are two ways to cause Emacs to count '~multiply-by-seven~' as
+  one symbols: modify the syntax table or modify the regular
+  expression.
+
+- We could redefine a hyphen as a word constituent character by
+  modifying the syntax table that Emacs keep for each mode.  This
+  action would serve our purpose, except that a hyphen is merely the
+  most common character within symbols that is not typically a word
+  constituent characters; there are others, too.
+
+- Alternatively, we can redefine the regexp used in the
+  ~count-words-example~ definition so as to include symbols.  This
+  procedure has the merit of clarity, but the task is a little tricky.
+
+- The first part is simple enough: the pattern must match at least one
+  character that is a word or symbol constituent.  Thus:
+
+  #+begin_src emacs-lisp
+    "\\(\\w\\|\\s_\\)+"
+  #+end_src
+
+- The '~\\(~' is the first part of the grouping construct that
+  includes the '~\\w~' and the '~\\s_~' as alternatives, separated by
+  the '~\\|~'.  The '~\\w~' matches any word-constituent characters
+  and the '~\\s_~' matches any character that is part of a symbol name
+  but not a word-constituent characters.  The '~+~' following the
+  group indicates that the word or symbol constituent characters must
+  be matched at least once.
+
+- However, the second part of the regexp is more difficult to design.
+  What we want is to follow the first part with optionally one or more
+  characters that are not constituents of a word or a symbol.  At
+  first, I thought I could define this with the following:
+
+  #+begin_src emacs-lisp
+    "\\(\\W\\|\\S_\\)*"
+  #+end_src
+
+- The upper case '~W~' and '~S~' match the characters that are /not/
+  word or symbol constituents.  Unfortunately, this expression matches
+  any character that is either not a word constituent or not a symbol
+  constituent.  This matches any character!
+
+- I then noticed that every word or symbol in my test region was
+  followed by white space (blank space, tab, or newline).  So I tried
+  placing a pattern to match one or more blank spaces after the
+  pattern for one or more word or symbol constituents.  This failed,
+  too.  Words and symbols are often separated by whitespace, but in
+  actual code parentheses may follow symbols and punctuation may
+  follow words.  So finally, I designed a pattern in which the word or
+  symbol constituents are followed optionally by characters that are
+  not white space and then followed optionally by white space.
+
+- Here is the full regular expression:
+
+  #+begin_src emacs-lisp
+    "\\(\\w\\|\s_\\)+[^ \t\n]*[ \t\n]*"
+  #+end_src
+
+** The ~count-words-in-defun~ Function
+
+- We have seen that there are several ways to write a
+  ~count-words-region~ function.  To write a ~count-words-in-defun~,
+  we need merely adapt one of these version.
+
+- The version that uses a ~while~ loop is easy to understand, so I am
+  going to adapt that.  Because ~count-words-in-defun~ will be part of
+  a more complex program, it need not be interactive and it need not
+  display message but just return the count.  These considerations
+  simplify the definition a little.
+
+- On the other hand, ~count-words-in-defun~ will be used within a
+  buffer that contains function definitions.  Consequently, it is
+  reasonable to ask that the function determine whether it is called
+  when point is within a function definition, and if it is, to return
+  the count for that definition.  This adds complexity to the
+  definition, but saves us from needing to pass argument to the
+  function.
+
+- These considerations lead us to prepare the following template:
+
+  #+begin_src emacs-lisp
+    (defun count-words-in-defun ()
+      "documentation..."
+      (set-up...
+        (while loop...)
+       return count)
+  #+end_src
