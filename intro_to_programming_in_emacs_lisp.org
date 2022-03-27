@@ -9634,11 +9634,11 @@ Here is a brief summary of some recently introduced functions.
 
   - [[The ~count-words-in-defun~ Function][count-words-in-defun]]                  Very like ~count-words-example~
 
-  - [[][Several defun]]                         Counting several defuns in a file
+  - [[Counsel Several ~defuns~ Within a File][Several defun]]                 Counting several defuns in a file
 
-  - [[][Find a File]]                           Do you want to look at a file?
+  - [[Find a File][Find a File]]                           Do you want to look at a file?
 
-  - [[][length-list-file]]                      A list of the length of many definitions
+  - [[~lengths-list-file~ in Detail][length-list-file]]                      A list of the length of many definitions
 
   - [[][Several length]]                        Counting in definitions in different files
 
@@ -9827,3 +9827,340 @@ Here is a brief summary of some recently introduced functions.
         (while loop...)
        return count)
   #+end_src
+
+- As usual, our job is to fill the slots.
+
+- First, the set up.
+
+- We are presuming that this function will be called within a buffer
+  containing function definition.  Point will either be within a
+  function definition or not.  For ~count-words-in-defun~ to work,
+  point must move to beginning of the definition, a counter must start
+  at zero, and the counting loop must stop when point reaches the end
+  of definition.
+
+- The ~beginning-of-defun~ function searches backwards for an opening
+  delimiter such as '~(~' at the beginning of a line, and moves point
+  to that position, or else to the limit of the search.  In practice,
+  this means that ~beginning-of-defun~ moves point to the beginning of
+  an enclosing or preceding function definition, or else to the
+  beginning of the buffer.  We can use ~beginning-of-defun~ to place
+  point where we wish to start.
+
+- The ~while~ loop requires a counter to keep track of the words or
+  symbols being counted.  A ~let~ expression can be used to create a
+  local variable for this purpose, and bind it to an initial value of
+  zero.
+
+- The ~end-of-defun~ functions works like ~beginning-of-defun~ except
+  that it moves point to the end of the definition.  ~end-of-defun~
+  can be used as part of an expression that determines the position of
+  the end of the definition.
+
+- The set up for ~count-words-in-defun~ takes shape rapidly: first we
+  move to the beginning of the definition, then we create a local
+  variable to hold the count, and finally, we record the position of
+  the end of the definition so the ~while~ loop will know when to stop
+  looping.
+
+- The code looks like this:
+
+  #+begin_src emacs-lisp
+    (beginning-of-defun)
+    (let ((count 0)
+          (end (save-excursion (end-of-defun) (point))))
+  #+end_src
+
+- The code is simple.  The only slight complication is likely to
+  concern ~end~: it is bound to the position of the end of the
+  definition by a ~save-excursion~ expression that returns the value
+  of point after ~end-of-defun~ temporarily moves it to the end of the
+  definition.
+
+- The second part of the ~count-words-in-defun~, after the step up, is
+  the ~while~ loop.
+
+- The loop must contain an expression that jumps point forward word by
+  and symbol by symbol, and another expression that counts the jumps.
+  The true-or-false-test for the ~while~ loop should test true so long
+  as point should jump forward, and false when point is at the end of
+  the definition.  We have already redefined the regular expression
+  for this, so the loop is straightforward:
+
+  #+begin_src emacs-lisp
+    (while (and (< (point) end)
+                (re-search-forward
+                 "\\(\\w\\|\\s_\\)+[^ \t\n]*[ \t\n]*" end t))
+      (setq count (1+ count)))
+  #+end_src
+
+- The third part of the function definition returns the count of words
+  any symbols.  This part is the last expression within the body of
+  the ~let~ expression, and can be, very simply, the local variable
+  ~count~, which when evaluated returns the count.
+
+- Put together, the ~count-words-in-defun~ definition looks like this:
+
+  #+begin_src emacs-lisp
+    (defun count-words-in-defun ()
+      "Return the number of words and symbols in a defun."
+      (beginning-of-defun)
+      (let ((count 0)
+            (end (save-excursion (end-of-defun) (point))))
+
+        (while
+            (and (< (point) end)
+                 (re-search-forward
+                  "\\(\\w\\|\\s_\\)+[^ \t\n]*[ \t\n]*"
+                  end t))
+          (setq count (1+ count)))
+        count))
+  #+end_src
+
+- How to test this? The function is not interactive, but it is easy to
+  put a wrapper around the function to make it interactive; we can use
+  almost the same code as for the recursive version of
+  ~count-words-example~:
+
+  #+begin_src emacs-lisp
+    ;;; Interactive version
+    (defun count-words-defun ()
+      "Number of words and symbols in a function definition."
+      (interactive)
+      (message
+       "Counting words and symbols in function definition ... ")
+      (let ((count (count-words-in-defun)))
+        (cond
+         ((zerop count)
+          (message
+           "The definition does NOT have any words or symbols."))
+         ((= 1 count)
+          (message
+           "The definition has 1 word or symbol."))
+         (t
+          (message
+           "The definition has  %d words or symbols." count)))))
+  #+end_src
+
+- Let's re-use ~C-c =~ as convenient keybinding:
+
+  #+begin_src emacs-lisp
+    (global-set-key "\C-c=" 'count-words-defun)
+  #+end_src
+
+- Now we can try out ~count-words-defun~: install both
+  ~count-words-in-defun~ and ~count-words-defun~, and set keybinding,
+  and then place the cursor within the following definition:
+
+  #+begin_src emacs-lisp
+    (defun multiply-by-seven (number)
+      "Multiply NUMBER by seven."
+      (* 7 number)
+  #+end_src
+
+- Success! The definition has 10 words and symbols.
+
+- The next problem is to count the numbers of words and symbols in
+  several definitions within a single file.
+
+** Counsel Several ~defuns~ Within a File
+
+- A file such a ~simple.el~ may have a hundred or more function
+  definitions within it.  Our long goal is to collect statistics on
+  many files, but as a first step, our immediate goal is to collect
+  statistics on one file.
+
+- The information will be a series of numbers, each number being the
+  length of a function definition.  We can store the numbers in a
+  list.
+
+- We know that we will want to incorporate the information regarding
+  one file with information regarding one file with information about
+  many other files; this means that the function for counting
+  definition lengths within one file need only returns the list of the
+  lengths.  It need not ans should not display any message.
+
+- The words count commands contain one expression to jump forward word
+  by word and another expression to count the jumps.  The function to
+  return the lengths of definitions can be designed to work the same
+  way, with one expression to jump point forward definition by
+  definition and another expression to construct the length's list.
+
+- This statement of the problem makes it elementary to write the
+  function definition.  Clearly, we will start the count at the
+  beginning of the file, so the first command will be ~(goto-char
+  (point-min))~.  Next, we start the ~while~ loop; and the
+  true-or-false test of the loop can be a regular expression search
+  for the next function definition--so long as the search succeeds,
+  point is moved forward and then the body of the loop is evaluated.
+  The body needs an expression that construct the length's list.
+  ~cons~, the list construction command, can be used to create the
+  list.  That is almost all there is to it.
+
+- Here is what this fragment of code looks like:
+
+  #+begin_src emacs-lisp
+    (goto-char (point-min))
+    (while (re-search-forward "^(defun" nil t)
+      (setq lengths-list
+            (cons (count-words-in-defun) lengths-list)))
+  #+end_src
+
+- What we have left out is the mechanism for finding the file that
+  contains the function definitions.
+
+- In previous examples, we either used this, the Info file, or we
+  switched back and forth to some other buffer, such as the
+  ~*scratch*~ buffer.
+
+- Finding a file is a new process that we have not yet discussed.
+
+** Find a File
+
+- To find a file in Emacs, you use the ~C-x C-f (find-file)~ command.
+  This command is almost, but not quite right for the lengths problem.
+
+- Let's look at the source for ~find-file~:
+
+  #+begin_src emacs-lisp
+    (defun find-file (filename)
+      "Edit file FILENAME.
+    Switch to a buffer visiting file FILENAME,
+    creating one if none already exists."
+      (interactive "FFind file: ")
+      (switch-to-buffer (find-file-noselect filename)))
+  #+end_src
+
+- (The most recent version of the ~find-file~ function definition
+  permits you to specify optional wildcards to visit multiple files;
+  that makes the definition more complex and we will not discuss it
+  here, since it is not relevant.  You can see its source using either
+  ~M-. (xref-find-definitions)~ or ~C-h f (describe-function)~.)
+
+- The definition I am showing possesses short but complete
+  documentation and a interactive specification that prompts you for a
+  file name when you use the command interactively.  The body of
+  definition contains two functions, ~find-file-noselect~ and
+  ~switch-to-buffer~.
+
+- According to its documentation as shown by ~C-h f~ (the
+  ~describe-function~ command), the ~find-file-noselect~ function
+  reads the named file into a buffer and returns the buffer.  (Its
+  most recent version includes an optional /wildcards/ arguments, too,
+  as well as another to read a file literally and another to suppress
+  warning messages.  These optional arguments are irrelevant.)
+
+- However, the ~find-file-noselect~ function does not select the
+  buffer in which it puts the file.  Emacs does not switch its
+  attention (or yours if you are using ~find-file-noselect~) to the
+  selected buffer.  That is what ~switch-to-buffer~ does: it switches
+  the buffer to which Emacs attention is directed; and it switches the
+  buffer displayed in the window to the new buffer.  We have discussed
+  buffer switching elsewhere.  (See [[Switching Buffers][Switching Buffers]].)
+
+- In this histogram project, we do not need to display each file on
+  the screen as the program determines the length of each definition
+  within it.  Instead of employing ~switch-to-buffer~, we can work
+  with ~set-buffer~, which redirects the attention of the computer
+  program to a different buffer does not redisplay in on the screen.
+  So instead of calling on ~find-file~ to do the job, we must write
+  our own expression.
+
+- The task is easy: use ~find-file-noselect~ and ~set-buffer~.
+
+** ~lengths-list-file~ in Detail
+
+- The core of the ~lengths-list-file~ function is a ~while~ loop
+  containing to move point forward defun by defun, and a function to
+  count the number of words and symbols in each defun.  This core must
+  be surrounded by functions that do various other tasks, including
+  finding the file, and ensuring that point start out at the beginning
+  of the file.  The function definition looks like this:
+
+  #+begin_src emacs-lisp
+    (defun lengths-list-file (filename)
+      "Return list of definitions' lengths within FILE.
+    The returned list is s list of numbers.
+    Each number is the number of words order
+    Symbol in one funcion definition."
+
+      (message "Working on `%s' ... " filename)
+      (save-excursion
+        (let ((buffer (find-file-noselect filename))
+              (lengths-list))
+          (set-buffer buffer)
+          (setq buffer-read-only t)
+          (widen)
+          (goto-char (point-min))
+          (while (re-search-forward "^(defun" nil t)
+            (setq lengths-list
+                  (const (count-words-in-defun) length-list)))
+          ;;(message buffer)    ; debug. just comment for debug
+          (kill-buffer buffer)
+          length-list)))
+  #+end_src
+
+- The function is passed one argument, the name of the file on which
+  it will work.  It has four lines of documentation, but no
+  interactive specification.  Since people worry that a computer
+  broken if they don't see anything going on, the first line of the
+  body is a message.
+
+- The next line contains a ~save-excursion~ that returns Emacs's
+  attention to the current buffer when the function completes.  This
+  is useful in case you embed this function in another function that
+  presumes point is restored to the original buffer.
+
+- In the varlist of the ~let~ expression, Emacs finds the file and
+  binds the local variable ~buffer~ to the buffer containing the file.
+  At the same time, Emacs creates ~lengths-list~ as a local variable.
+
+- Next, Emacs switches its attention to the buffer.
+
+- In the following line, Emacs makes the buffer read-only.  Ideally,
+  this line is not necessary.  None of the function for counting words
+  and symbols in a function definition should change the buffer.
+  Besides, the buffer is not going to be saved, even if it were
+  changed.  This line is entirely the consequence of great, perhaps
+  excessive, caution.  The reason for the caution is that this
+  function and those it calls work on the sources for Emacs and it is
+  inconvenient if they are inadvertently modified.  It goes without
+  saying that I did not realize a need for this line until an
+  experiment went awry and started to modify my Emacs source files ...
+
+- Next comes a call to widen the buffer if it is narrowed.  this
+  function is usually not needed--Emacs creates a fresh buffer if none
+  already exists; but if a buffer visiting the file already exists
+  Emacs returns that one.  In this case, the buffer be narrowed and
+  must be widened.  If we wanted to be fully user-friendly, we would
+  arrange to save the restriction and the location of point, but we
+  won't.
+
+- The ~(goto-char (point-min))~ expression moves point to the
+  beginning of the buffer.
+
+- Then comes a ~while~ loop in which the work of the function is
+  carried out.  In the loop, Emacs determines the length of each
+  definition and constructs a lengths' list containing the
+  information.
+
+- Emacs kills the buffer after working through it.  This is to save
+  space inside of Emacs.  My version of GNU Emacs 19 contained over
+  300 source files of interest; GNU Emacs 22 contains over a thousand
+  source files.  Another function will apply ~lengths-list-file~ to
+  each of the files.
+
+- Finally, the last expression within the ~let~ expression is the
+  ~length-list~ variable; its value is returned as the value of the
+  whole function.
+
+- You can try this function by installing it in the usual fashion.
+  Then place your cursor after the following expression and type ~C-x
+  C-e (eval-last-sexp)~.
+
+  #+begin_src emacs-lisp
+    (length-list-file
+     "/usr/local/share/emacs/22.1/lisp/emacs-lisp/debug.el")
+  #+end_src
+
+- You may need to change the pathname of the file
