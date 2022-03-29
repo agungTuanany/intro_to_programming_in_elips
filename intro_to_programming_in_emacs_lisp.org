@@ -45,25 +45,25 @@
 
 - Lists are the basic of lisps.
 
-  - [[Lisp List & Atom][Lisp Lists]]                  What are lists?
+  - [[Lisp List & Atom][Lisp Lists]]                                            What are lists?
 
-  - [[Lisp List & Atom][Run A program]]               Any list in Lisp is a program ready to run
+  - [[Lisp List & Atom][Run A program]]                                         Any list in Lisp is a program ready to run
 
-  - [[Run A program][Making Errors]]               Generating an error message
+  - [[Run A program][Making Errors]]                                            Generating an error message
 
-  - [[Symbol Names and Function Definition][Names & Definitions]]         Names of symbol and function definitions
+  - [[Symbol Names and Function Definition][Names & Definitions]]               Names of symbol and function definitions
 
-  - [[The Lisp Interpreter][Lisp Interpreter]]            What the Lisp interpreter does
+  e [[The Lisp Interpreter][Lisp Interpreter]]                                  What the Lisp interpreter does
 
-  - [[Evaluation][Evaluation]]                  Running a program
+  - [[Evaluation][Evaluation]]                                                  Running a program
 
-  - [[Variables][Variables]]                   Returning a value from a variable
+  - [[Variables][Variables]]                                                    Returning a value from a variable
 
-  - [[Arguments][Arguments]]                   Passing information to a function
+  - [[Arguments][Arguments]]                                                    Passing information to a function
 
-  - [[Setting the Value of a Variable][set & setq]]                  Setting the value of a variable
+  - [[Setting the Value of a Variable][set & setq]]                             Setting the value of a variable
 
-  - [[Summary][Summary]]                     The major points
+  - [[Summary][Summary]]                                                        The major points
 
 ** Lisp List & Atom
 *** Vocabularies:
@@ -2400,7 +2400,8 @@ Above list is same as this:
   and ~save-excursion~ itself is used only for its side effect (which
   is restoring the position of point).
 
-- In more detail, the template for a ~save-excursion~ expression looks like this:
+- In more detail, the template for a ~save-excursion~ expression looks
+  like this:
 
   #+begin_src emacs-lisp
     (save-excursion
@@ -3476,33 +3477,22 @@ Here is a brief summary of the various functions discussed in this chapter.
 
 **** '~b~' in an Interactive Expression
 
-- The body of the ~insert-buffer~ function has two major parts: an
-  ~or~ expression and a ~let~ expression.  The purpose of the ~or~
-  expression is to ensure that the argument ~buffer~ is bound to a
-  buffer and not just the name of a buffer.  The body of the ~let~
-  expression contains the code which copies the other buffer into the
-  current buffer.
+- The next arguments in the interactive expression start with lower
+  case '~b~'.  (This is different from the code for
+  ~append-to-buffer~, which uses an upper-case '~B~'.  See [[][The
+  Definition of ~append-to-buffer~]].)  The lower-case '~b~' tells the
+  Lisp interpreter that the argument for ~insert-buffer~ should be an
+  existing buffer or else its name.  (The upper-case '~B~' option
+  provides for the possibility that the buffer that does bot exist.)
+  Emacs will prompt you for the name of the buffer, offering you a
+  default buffer, with name completion enabled.  If the buffer does
+  not exist, you receive a message that says "No match"; your terminal
+  may beep as you as well.
 
-- In outline, the two expressions fit into the ~insert-buffer~
-  function like this:
-
-  #+begin_src emacs-lisp
-    (defun insert-buffer (buffer)
-      "documentation.."
-      (interactive "*bInsert buffer: ")
-      (or ...
-          ...
-          (let (varlist)
-            body-of-let... )
-  #+end_src
-
-- To understand how the ~or~ expression ensures that the argument
-  ~buffer~ is bound to a buffer and not then name of a buffer, it
-  first necessary to understand the ~or~ function.
-
-- Before doing this, let me rewrite this part of the function using
-  ~if~ so that you can see what is done in a manner that will be
-  familiar.
+- The new and simplified code generates a list for ~interactive~.  It
+  uses ~barf-if-buffer-ready-only~ and ~read-buffer~ functions with
+  which are already familiar ans the ~progn~ special form with which
+  we are not.  (It will be described later.)
 
 *** The Body of the ~insert~buffer~ Function
 
@@ -3513,7 +3503,8 @@ Here is a brief summary of the various functions discussed in this chapter.
   contains the code which copies the other buffer into the current
   buffer.
 
-- In outline, the two expression fit into the ~insert-buffer~ function like this:
+- In outline, the two expression fit into the ~insert-buffer~ function
+  like this:
 
   #+begin_src emacs-lisp
     (defun insert-buffer (buffer)
@@ -10415,8 +10406,10 @@ Here is a brief summary of some recently introduced functions.
   - [[The Data for Display in Detail][Data for Display in Detail]]
 
   - [[Sorting Lists][Sorting]]                          Sorting list
+
   - [[Making a List of Files][Files List]]              Making a list of files
-  - [[][Counting function definitions]]
+
+  - [[Counting function definitions][Counting function definitions]]
 
 *** The Data for Display in Detail
 
@@ -10677,3 +10670,250 @@ Here is a brief summary of some recently introduced functions.
      (files-in-below-directory "/usr/local/share/emacs/2.1.1/lisp/")
      'string-lessp)
   #+end_src
+
+*** Counting function definitions
+
+- our immediate goal is to generate a list that tells us how many
+  function definitions contains fewer that 10 words and symbols, how
+  many contain between 10 and 19 words and symbols, how many contain
+  between 20 and 29 words and symbols, and so on.
+
+- With a sorted list of numbers, this is easy: count how many elements
+  of the list are smaller than 10, then, after moving the number just
+  counted, count how many are smaller than 20, then, after moving past
+  the number just counted, count how many are smaller than 30, and so
+  on.  Each of the numbers, 10, 20, 30, 40, and the like, is one
+  larger than the top of that range.  We can call the list of such
+  number the ~top-of-ranges~ list.
+
+- If we wished, we could generate this list automatically, but it is
+  simpler to write a list manually.  Here it is:
+
+  #+begin_src emacs-lisp
+    (defvar top-of-ranges
+      '(10   20  30  40  50
+        60   70  80  90 100
+        110 120 130 140 150
+        160 170 180 190 200
+        210 220 230 240 250
+        260 270 280 290 300)
+      "List specifying ranges for `defuns-per-range'.")
+  #+end_src
+
+- to change the ranges, we edit this list.
+
+- Next, we need to write the function that creates the list of the
+  number of definitions within each range.  Clearly, this function
+  must take the ~sorted-lengths~ and the ~top-of-ranges~ lists as
+  arguments.
+
+- The ~defuns-per-range~ function must do two things again and again:
+  it must count the number of definitions within a range specified by
+  the current top-of-range value; and it must shift to the next higher
+  value in the ~top-of-ranges~ list after counting the number of
+  definitions in the current range.  Since each of these actions is
+  repetitive, we can use ~while~ loops for the jobs.  One loop count
+  the number of definitions in the range defined by the current
+  top-level-range value, and the other loop selects each of the
+  top-of-range values in turn.
+
+- Several entries of the ~sorted-lengths~ list are counted for each
+  range; this means that the loop for the ~sorted-lenghts~ will be
+  inside the loop for the ~top-of-ranges~ list, like a small gear
+  inside a big gear.
+
+- The inner loop counts the number of definitions within a range.  It
+  is a simple loop of the type we have seen before.  (See [[][A loop
+  with an incrementing counter]].)  The true-or-false test of the loop
+  tests whether the value from the ~sorted-lengths~ list is smaller
+  than the current value of the top of the range.  If it is, the
+  function increments the counter and tests the next value from the
+  ~sorted-lengths~ lists.
+
+- The inner loop looks like this:
+
+  #+begin_src emacs-lisp
+    (while length-element-smaller-than-top-of-range
+      (setq number-within-range (1+ number-within-range))
+      (setq sorted-lengths (cdr sorted-lengths)))
+  #+end_src
+
+- The outer loop must start with the lowest value of the
+  ~top-of-ranges~ list, and then be set to each of the succeeding
+  higher values in turn.  This can be done with a loop like this:
+
+  #+begin_src emacs-lisp
+    (while top-of-ranges
+      body-of-loop...
+      (setq top-of-ranges (cdr top-of-ranges)))
+  #+end_src
+
+- Put together, the two loops look like this:
+
+  #+begin_src emacs-lisp
+    (while top-of-ranges
+
+      ;; Count the number of elements within the current range.
+      (while length-of-element-smaller-than-top-of-range
+        (setq number-within-range (1+ number-within-range))
+        (setq sorted-lengths (cdr sorted-lengths)))
+
+      ;; Move to next range
+      (setq top-of-ranges (cdr top-of-ranges)))
+  #+end_src
+
+- In addition, in each circuit of the outer loop, Emacs should record
+  the number of definitions within that range (the value of
+  ~number-within-range~) in a list.  We van use ~cons~ for this
+  purpose.  (See [[][cons]].)
+
+- The ~cons~ function work fine, except that the list it constructs
+  will contain the number of definitions for the highest range at its
+  beginning and the number of definitions for the lowest range at its
+  end.  This is because ~cons~ attaches new elements of the list to
+  the beginning of the list, and since the two loops are working their
+  way through the lengths' list from the lower end first, the
+  ~defuns-per-range-list~ will end up largest number first.  But we
+  will want to print our graph with smallest values first and the
+  larger later.  This solution is to reverse the order of the
+  ~defuns-per-range-list~.  We can do this using the ~nreverse~
+  function, which reverses the order of a list.
+
+- For example,
+
+  #+begin_src emacs-lisp
+    (nreverse '(1 2 3 4))
+  #+end_src
+
+- produces:
+
+  #+begin_src emacs-lisp
+    (4 3 2 1)
+  #+end_src
+
+
+- Note that the ~nreverse~ function is destructive--that is, it
+  changes the list to which it is applied; this contrast with the
+  ~car~ and ~cdr~ functions, which are non-destructive.  In this case,
+  we do not want the original ~defuns-per-range-list~, so it does not
+  matter that it is destroyed.  (The ~reverse~ function provides a
+  reversed copy of list, leaving the original list as is.)
+
+- Put all together, the ~defuns-per-range~ looks like this:
+
+  #+begin_src emacs-lisp
+    (defun defuns-per-range (sorted-lengths top-of-ranges)
+      "SORTED-LENGTHS defuns in each TOP-OF-RANGES range."
+      (let ((top-of-range (car top-of-ranges))
+            (number-within-range 0)
+            defuns-per-range-list)
+
+
+        ;; Outer loop.
+        (while top-of-ranges
+
+
+          ;; Inner loop.
+          (while (and
+                  ;; Need number for numeric test.
+                  (car sorted-lengths)
+                  (< (car sorted-lengths) top-of-range))
+
+
+            ;; Count number of definitions within current range.
+            (setq number-within-range (1+ number-within-range))
+            (setq sorted-lengths (cdr sorted-lengths)))
+
+          ;; Exit inner loop but remain within outer loop.
+
+
+          (setq defuns-per-range-list
+                (cons number-within-range defuns-per-range-list))
+          (setq number-within-range 0)      ; Reset count to zero.
+
+
+          ;; Move to next range.
+          (setq top-of-ranges (cdr top-of-ranges))
+          ;; Specify next top of range value.
+          (setq top-of-range (car top-of-ranges)))
+
+
+        ;; Exit outer loop and count the number of defuns larger than
+        ;;   the largest top-of-range value.
+        (setq defuns-per-range-list
+              (cons
+               (length sorted-lengths)
+               defuns-per-range-list))
+
+
+        ;; Return a list of the number of definitions within each range,
+        ;;   smallest to largest.
+        (nreverse defuns-per-range-list)))
+
+  #+end_src
+
+- The function is straightforward except for one subtle feature.  The
+  true-or-false test of the inner loop looks like this:
+
+  #+begin_src emacs-lisp
+    (and (car sorted-lengths)
+         (< (car sorted-lengths) top-of-range))
+  #+end_src
+
+- The purpose of the test is to determine whether the first item in
+  the ~sorted-lengths~ list is less than the value of the top of the
+  range.
+
+- The simple version of the test works fine unless the
+  ~sorted-lengths~ list has a ~nil~ value.  In that case, the ~(car
+  sorted-lengths)~ expression function returns ~nil~.  The ~<~
+  function cannot compare a number to ~nil~, which is an empty list,
+  so Emacs signals an error and stops the function from attempting to
+  continue to execute.
+
+- The ~sorted-lengths~ list always become ~nil~ when the counter
+  reaches the end of the list.  This means that any attempt to use the
+  ~defuns-per-range~ function with the simple version of the test will
+  fail.
+
+- We solve the problem by using the ~(car sorted-lengths)~ expression
+  in conjunction with the ~and~ expression.  The ~(car
+  sorted-lengths)~ expression returns a non-~nil~ value so long as the
+  list has at least one number within it, but returns ~nil~ if the
+  list empty.  The ~and~ expression first evaluates the ~(car
+  sorted-lengths)~ expression, and if it is ~nil~, returns false
+  /without/ evaluating the ~<~ expression.  But if the ~(car
+  sorted-lengths)~ expression returns a non-~nil~ value, the ~and~
+  expression evaluates the ~<~ expression, and returns that value as
+  the of the ~and~ expression.
+
+- This way, we avoid an error.
+
+- Here is a short test of ~defuns-per-range~ function.  First,
+  evaluate the expression that binds (a shortened) ~top-of-ranges~
+  list to the list of values, then evaluate the expression for binding
+  the ~sorted-lengths~ list, and then evaluate the ~defuns-per-range~
+  function.
+
+  #+begin_src emacs-lisp
+    ;;; (Shorter list than we will use later.)
+    (setq top-of-ranges
+       '(110 120 130 140 150
+         160 170 180 190 200))
+
+    (setq sorted-lengths
+          '(85 86 110 116 122 154 176 179 200 265 300 300))
+
+    (defuns-per-range sorted-lengths top-of-ranges)
+  #+end_src
+
+- The list returned looks like this:
+
+  #+begin_src emacs-lisp
+    (2 2 2 0 0 1 0 2 0 0 4)
+  #+end_src
+
+- Indeed, there are two elements of the ~sorted-lengths~ list smaller
+  than 110, two elements 110 and 119, two elements between 120 and
+  129, and so on.  There are four elements with a values of 200 or
+  larger.
