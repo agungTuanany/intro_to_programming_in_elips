@@ -155,20 +155,20 @@ Above list is same as this:
 - If you run it (for which the Lisp jargon is */evaluate/*), the
   computer will do one of three things:
 
-  -- Do nothing except return you the list itself,
+  - Do nothing except return you the list itself,
 
-  -- send you an error message,
+  - send you an error message,
 
-  -- treat the first symbols in the list as a command to do
-  something. (the last of these three things that you really want
-  Lisp to expect).
+  - treat the first symbols in the list as a command to do
+    something. (the last of these three things that you really want
+    Lisp to expect).
 
-- The single apostrophe, /( ' )/, that put in front of some of the example
-  lists in preceding section is called a */quote/*; when it precedes a
-  list, it tells Lisp to do nothing with the list, other than take it
-  as it is written.  But if there is */no quote/* preceding a list,
-  the first item of the list is special: it is a command for the
-  computer to obey.
+- The single apostrophe, /( ' )/, that put in front of some of the
+  example lists in preceding section is called a */quote/*; when it
+  precedes a list, it tells Lisp to do nothing with the list, other
+  than take it as it is written.  But if there is */no quote/*
+  preceding a list, the first item of the list is special: it is a
+  command for the computer to obey.
 
 ** Generate an Error Message
 
@@ -237,7 +237,7 @@ Above list is same as this:
   appear in the echo area and look like this:
 
   #+begin_src emacs-lisp
-  Symbol's function definition is void: this
+    Symbol's function definition is void: this
   #+end_src
 
 - The message goes away as soon as you type a key, even just to move
@@ -289,9 +289,9 @@ Above list is same as this:
   in the function definition. Otherwise, the interpreter print an
   error message.
 
-  - [[Complications][Complications]] Variables, Special forms, list within.
+  - [[Complications][Complications]]    Variables, Special forms, list within.
 
-  - [[Byte Compiling][Byte Compiling]] Special processing code for speed.
+  - [[Byte Compiling][Byte Compiling]]  Special processing code for speed.
 
 *** Complications
 
@@ -329,7 +329,8 @@ Above list is same as this:
   inside inner list, it works that one first, and so on.
 
 - The interpreter works on the innermost list first, to evaluate the
-  result of that list.  The result may be used by the enclosing expression.
+  result of that list.  The result may be used by the enclosing
+  expression.
 
 - Otherwise, the interpreter works */left to right/*, from one
   expression to the next.
@@ -350,7 +351,8 @@ Above list is same as this:
 - As practical matter, for most thing you might do to customize or
   extend Emacs, you do not need to byte compile; and I will not
   discuss the topic here. See Section "Byte Compilation" in the /GNU
-  Emacs Lisp Reference Manual/, for full description of byte compilation.
+  Emacs Lisp Reference Manual/, for full description of byte
+  compilation.
 
 ** Evaluation
 
@@ -360,9 +362,9 @@ Above list is same as this:
   language, "to ascertain the value or amount of; to appraise",
   according to /Webster's New Collegiate Dictionary/.
 
-  - [[How Interpreter acts][How Interpreter acts]]              Returns and Side Effects
+  - [[How Interpreter acts][How Interpreter acts]]       Returns and Side Effects
 
-  - [[Evaluating Inner Lists][Evaluating Inner Lists]]            List within lists
+  - [[Evaluating Inner Lists][Evaluating Inner Lists]]   List within lists
 
 *** How Interpreter acts
 
@@ -545,17 +547,17 @@ Above list is same as this:
 - Different function require different numbers of arguments; some
   function require none at all.
 
-  - [[Argument's Data Types][Data Types]]                          Types of data passed to a function
+  - [[Argument's Data Types][Data Types]]                                            Types of data passed to a function
 
-  - [[An Argument as the Value of a Variable or List][Args as Variable or List]]            An arguments can be the value of variable or list
+  - [[An Argument as the Value of a Variable or List][Args as Variable or List]]     An arguments can be the value of variable or list
 
-  - [[Variable Number of Arguments][Variable Number of Arguments]]        Some functions may take a variable number of arguments
+  - [[Variable Number of Arguments][Variable Number of Arguments]]                   Some functions may take a variable number of arguments
 
-  - [[Using the Wrong Type Object as an Argument][Wrong Type of Argument]]              Passing an argument of the wrong type to a function
+  - [[Using the Wrong Type Object as an Argument][Wrong Type of Argument]]           Passing an argument of the wrong type to a function
 
-  - [[The ~message~ Function][message]]                    A useful function for sending message
+  - [[The ~message~ Function][message]]                                              A useful function for sending message
 
-  - [[Argument's Data Types][Argument's Data Types]]               Types data passed to a function
+  - [[Argument's Data Types][Argument's Data Types]]                                 Types data passed to a function
 
 *** Argument's Data Types
 
@@ -636,16 +638,17 @@ Above list is same as this:
     (concat "The " (number-to-string (+ 2 fill-column)) " red foxes.")
   #+end_src
 
-  If you evaluate this expression--and if, as with Emacs,
-  ~fill-column~ evaluates to *70--*~"The 72 red foxes."~ will appear in the echo area.
+- If you evaluate this expression--and if, as with Emacs,
+  ~fill-column~ evaluates to *70--*~"The 72 red foxes."~ will appear
+  in the echo area.
 
-  - Note that you must put spaces after the word ~"The"~ and before the
-   word ~'red'~ so they will appear in the final string.
+- Note that you must put spaces after the word ~"The"~ and before
+  the word ~'red'~ so they will appear in the final string.
 
-  - The function ~number-to-string~ converts the integer that the
-    addition function returns to a string.
+- The function ~number-to-string~ converts the integer that the
+  addition function returns to a string.
 
-  - ~number-to-string~ is also known as ~int-to-string~.
+- ~number-to-string~ is also known as ~int-to-string~.
 
 *** Variable Number of Arguments
 
@@ -681,7 +684,8 @@ Above list is same as this:
 - When a function is passed an argument of the wrong type, the Lisp
   interpreter produces an error message.  For example, the ~+~
   function expects the values of its arguments to be numbers.  As an
-  experiment we can pass it the quoted symbol ~hello~ instead of a number.
+  experiment we can pass it the quoted symbol ~hello~ instead of a
+  number.
 
   #+begin_src emacs-lisp
     (+ 2 'hello)
@@ -757,7 +761,7 @@ Above list is same as this:
 - The whole string between double quotation marks is a /single
   argument/ and is printed in /toto/.
 
-  Note that in this example, the message itself will appear in the
+- Note that in this example, the message itself will appear in the
   echo area within double quotes; that is because you see the value
   returned by the ~message~ function.  In most uses of ~message~ in
   program that you write, the text will be printed in the echo area as
@@ -844,9 +848,9 @@ Above list is same as this:
 
 - The jargon for this process is to /bind/ a variable to a value.
 
-  - [[Using set][Using set]]                 Setting values.
-  - [[Using ~setq~][Using ~setq~]]              Setting a quoted value.
-  - [[Counting][Counting]]                  Using ~setq~ to count.
+  - [[Using set][Using set]]         Setting values.
+  - [[Using ~setq~][Using ~setq~]]   Setting a quoted value.
+  - [[Counting][Counting]]           Using ~setq~ to count.
 
 *** Using set
 
@@ -861,16 +865,16 @@ Above list is same as this:
 - When you evaluate ~flowers~, the list ~(rose violet daisy
   buttercup)~ appears in the echo area.
 
-- Incidentally, if you evaluate ~'flowers~, the variable with a quote in
-  front of it, what you will see in the echo area is the symbol
+- Incidentall y, if you evaluate ~'flowers~, the variable with a quote
+  in front of it, what you will see in the echo area is the symbol
   itself, ~flowers~.  Here is the quoted symbol, so you can try this:
 
   #+begin_src emacs-lisp
     'flowers
   #+end_src
 
-- Note also, that when you use ~set~, you need to *quote both arguments*
-  to ~set~.  Unless you want them evaluated.
+- Note also, that when you use ~set~, you need to *quote both
+  arguments* to ~set~.  Unless you want them evaluated.
 
 - Since we do not want either argument evaluated, neither the variable
   ~flowers~ nor the list ~(rose violet daisy buttercup)~, both are
@@ -890,8 +894,8 @@ Above list is same as this:
 - As a practical matter, you almost always quote the first argument to
   ~set~.  The combination of ~set~ and a quoted first argument is /so
   common/ that is has its own name: the special form ~setq~.  This
-  special form is just like ~set~ except that the first argument is
-  *quoted automatically*, so you don't need to type the quote mark
+  special form is just like ~set~ except that the first argument
+  is *quoted automatically*, so you don't need to type the quote mark
   yourself.
 
 - Also, as an added convenience, ~setq~ permits you to set several
@@ -1026,7 +1030,6 @@ Above list is same as this:
 - In many cases, *a function's primary purpose is to create a side
   effect*.
 
-
 * Practicing Evaluation
 
 - It is useful to spend a little time evaluating various expression that
@@ -1039,13 +1042,13 @@ Above list is same as this:
   we will study the code of several other buffer-related function, to
   see how they were written.
 
- - [[How to Evaluate][How to Evaluate]]         Typing editing or ~C-x C-e~ causes evaluation
+ - [[How to Evaluate][How to Evaluate]]                               Typing editing or ~C-x C-e~ causes evaluation
 
- - [[Buffer Names][Buffer Names]]            Buffers and files are different.
+ - [[Buffer Names][Buffer Names]]                                     Buffers and files are different.
 
- - [[Getting Buffers][Getting Buffers]]         Getting a buffer itself, not merely its name.
+ - [[Getting Buffers][Getting Buffers]]                               Getting a buffer itself, not merely its name.
 
- - [[Switching Buffers][Switching Buffers]]       How to change to another Buffer.
+ - [[Switching Buffers][Switching Buffers]]                           How to change to another Buffer.
 
  - [[Buffer Size and the location of Point][Buffer Size & Location]]  Where point is located and the size of the buffer
 
@@ -1276,7 +1279,8 @@ Above list is same as this:
   eyes.  /When a computer program work on a buffer, that buffer does
   not have to be visible on the screen/.
 
-- ~switch-to-buffer~ is designed for humans and does two different things:
+- ~switch-to-buffer~ is designed for humans and does two different
+  things:
 
   - It switches the buffer to which Emacs's attention is directed;
 
@@ -1355,7 +1359,6 @@ Above list is same as this:
 - Likewise, the function ~point-max~ returns the value of the maximum
   permissible value of point in the current buffer.
 
-
 * How To Write Function Definition
 
 - When the Lisp interpreter evaluates a list, it looks to see whether
@@ -1368,25 +1371,25 @@ Above list is same as this:
 
   - [[An Aside about Primitive Function][Primitive Function]]
 
-  - [[The ~defun~ Macro][~defun~]]              The ~defun~ macro.
+  - [[The ~defun~ Macro][~defun~]]                                 The ~defun~ macro.
 
   - [[Install A Function Definition][install]]                     Install a function definition.
 
-  - [[Make a Function Interactive][Interactive]]                 Making a function interactive.
+  - [[Make a Function Interactive][Interactive]]                   Making a function interactive.
 
-  - [[Different Options for interactive][Interactive Options]]         Different options for ~interactive~.
+  - [[Different Options for interactive][Interactive Options]]     Different options for ~interactive~.
 
-  - [[Install Code Permanently][Permanent Installation]]      Installing code permanently.
+  - [[Install Code Permanently][Permanent Installation]]           Installing code permanently.
 
-  - [[let][let]]                         Creating and initializing local variables.
+  - [[let][let]]                                                   Creating and initializing local variables.
 
-  - [[The ~if~ Special Form][if]]                      What if?
+  - [[The ~if~ Special Form][if]]                                  What if?
 
-  - [[If-then-else Expression][else]]                        if-then-else expression.
+  - [[If-then-else Expression][else]]                              if-then-else expression.
 
-  - [[Truth & Falsehood in Emacs Lisp][Truth & Falsehood]]           What Lisp considered false and true.
+  - [[Truth & Falsehood in Emacs Lisp][Truth & Falsehood]]         What Lisp considered false and true.
 
-  - [[~save-excursion~][~save-excursion~]]            Keeping track of point and buffer.
+  - [[~save-excursion~][~save-excursion~]]                         Keeping track of point and buffer.
 
   - [[Review][Review]]
 
@@ -1428,7 +1431,8 @@ Above list is same as this:
   involves arithmetic or mathematics.  The examples mostly involve
   text in one way or another.
 
-- A function definition has up to *five* parts following the word ~defun~:
+- A function definition has up to *five* parts following the word
+  ~defun~:
 
   - The name of the symbol to which the function definition should be
     attached
@@ -1550,7 +1554,7 @@ Above list is same as this:
 
   - [[The effect of installation][Effect of installation]]
 
-  - [[Change a Function Definition][Change a defun]]             How to change a function definition
+  - [[Change a Function Definition][Change a defun]]        How to change a function definition
 
 *** The effect of installation
 
@@ -1632,7 +1636,7 @@ Above list is same as this:
 
   - [[An Interactive multiply-by-seven, An Overview][ An Interactive multiply-by-seven]]       An overview
 
-  - [[An Interactive ~multiply-by-seven~][multiply-by-seven in detail]]             The interactive version
+  - [[An Interactive ~multiply-by-seven~][multiply-by-seven in detail]]                        The interactive version
 
 *** An Interactive multiply-by-seven, An Overview
 
@@ -1799,7 +1803,8 @@ Above list is same as this:
   ~(interactive)~.  The ~mark-whole-buffer~ function is like this.
 
 - Alternatively, if the special letter-codes are not right for your
-  application, you can pass your own arguments to ~interactive~ as a list.
+  application, you can pass your own arguments to ~interactive~ as a
+  list.
 
 - See The Definition of ~append-to-buffer~, for an example.  See
   Using Interactive in The GNU Emacs Lisp Reference Manual, for a
@@ -2261,7 +2266,7 @@ Above list is same as this:
   a /symbol/ (other than ~nil~) such as ~flowers~, or a /list/ (so
   long as it is not empty) or even a /buffer/!.
 
-  - [[An explanation of ~nil~][nil explained]]        ~nil~ has two meaning
+  - [[An explanation of ~nil~][nil explained]]          ~nil~ has two meaning
 
 *** An explanation of ~nil~
 
@@ -2321,7 +2326,7 @@ Above list is same as this:
 
   - [[Point and Mark][Point and Mark]]
 
-  - [[Template for a ~save-excursion~ Expression][Template for ~save-excursion]]
+  - [[Template for a ~save-excursion~ Expression][Template for save-excursion]]
 
 *** Point and Mark
 
@@ -2647,15 +2652,15 @@ Above list is same as this:
 - These function described here are all related to *buffers*. Later,
   we will study other function.
 
-  - [[Finding More Information][Finding More]]        How to find more information.
+  - [[Finding More Information][Finding More]]                                               How to find more information.
 
   - [[A Simplified ~beginning-of-buffer~ Definition][simplified-beginning-of-buffer]]        Show ~goto-char~, ~point-min~,and ~push-mark~.
 
-  - [[The Definition of ~mark-whole-buffer~][mark-whole-buffer]]             Almost the same as ~beginning-of-buffer~.
+  - [[The Definition of ~mark-whole-buffer~][mark-whole-buffer]]                             Almost the same as ~beginning-of-buffer~.
 
-  - [[the definition of ~append-to-buffer~][append-to-buffer]]              Uses ~save-excursion~ and ~insert-buffer-substring~.
+  - [[the definition of ~append-to-buffer~][append-to-buffer]]                               Uses ~save-excursion~ and ~insert-buffer-substring~.
 
-  -[[Review][Buffer Related Review]]  Review
+  -[[Review][Buffer Related Review]]                                                         Review
 
 ** Finding More Information
 
@@ -2751,7 +2756,8 @@ Above list is same as this:
       (goto-char (point-min)))
   #+end_src
 
-  - Like all the function definitions, this definition has /five/ parts following the macro ~defun~:
+  - Like all the function definitions, this definition has /five/
+    parts following the macro ~defun~:
 
     - The name: in this example, ~simplified-beginning-of-buffer~.
 
@@ -2816,6 +2822,7 @@ Above list is same as this:
   as the ~beginning-of-buffer~ definition except that the body of the
   function contains the expression ~(goto-char (point-max))~ in place
   of ~(goto-char (point-min))~.
+
 ** The Definition of ~mark-whole-buffer~
 
 - The ~mark-whole-buffer~ function is no harder to understand than the
@@ -2869,7 +2876,8 @@ Above list is same as this:
 
 *** Body of ~mark-whole-buffer~
 
-- The body of the ~mark-whole-buffer~ function consist of three lines of code:
+- The body of the ~mark-whole-buffer~ function consist of three lines
+  of code:
 
   #+begin_src emacs-lisp
     (push-mark (point))
@@ -2940,11 +2948,11 @@ Above list is same as this:
 
   - [[An overview of ~append-to-buffer~][append-to-buffer overview]]
 
-  - [[The ~append-to-buffer~ Interactive Expression][append interactive]]            A two part interactive expression
+  - [[The ~append-to-buffer~ Interactive Expression][append interactive]]       A two part interactive expression
 
-  - [[The Body of ~append-to-buffer~][append-to-buffer body]]     Incorporates a ~let~ expression
+  - [[The Body of ~append-to-buffer~][append-to-buffer body]]                   Incorporates a ~let~ expression
 
-  - [[~save-excursion~ in ~append_to-buffer~][append save-excursion]]     How the ~save-excursion~ works
+  - [[~save-excursion~ in ~append_to-buffer~][append save-excursion]]           How the ~save-excursion~ works
 
 *** An overview of ~append-to-buffer~
 
@@ -3306,11 +3314,11 @@ Here is a brief summary of the various functions discussed in this chapter.
   important distinction between a name and the object to which the
   name refers,
 
-    - [[The Definition of ~copy-to-buffer~][copy-to-buffer]]             With ~set-buffer~, ~get-buffer-create~.
+    - [[The Definition of ~copy-to-buffer~][copy-to-buffer]]                    With ~set-buffer~, ~get-buffer-create~.
 
-    - [[The definition of ~insert-buffer~][insert-buffer]]               Read-only, and with ~or~.
+    - [[The definition of ~insert-buffer~][insert-buffer]]                      Read-only, and with ~or~.
 
-    - [[Complete Definition of ~beginning-of-buffer~][beginning-of-buffer]]   Shows ~goto-char~, ~point-min~, and ~Push-mark~.
+    - [[Complete Definition of ~beginning-of-buffer~][beginning-of-buffer]]     Shows ~goto-char~, ~point-min~, and ~Push-mark~.
 
     - [[Review][Second buffer Related Review]]
 
@@ -3402,15 +3410,15 @@ Here is a brief summary of the various functions discussed in this chapter.
 
 - [[The Code for ~insert-code~][insert-buffer code]]
 
-- [[The Interactive Expression in ~insert-buffer~][insert-buffer interactive]]              When you can read, but not write.
+- [[The Interactive Expression in ~insert-buffer~][insert-buffer interactive]]          When you can read, but not write.
 
-- [[The Body of the ~insert~buffer~ Function][insert-buffer body]]      The body has an ~or~ and a ~let~.
+- [[The Body of the ~insert~buffer~ Function][insert-buffer body]]                      The body has an ~or~ and a ~let~.
 
-- [[~insert-buffer- with an ~if~ Instead of an ~or~][if & or]]                    Using an ~if~ instead of an ~or~.
+- [[~insert-buffer- with an ~if~ Instead of an ~or~][if & or]]                          Using an ~if~ instead of an ~or~.
 
-- [[The ~or~ in the Body][Insert or]]                          How the ~or~ expression works.
+- [[The ~or~ in the Body][Insert or]]                                                   How the ~or~ expression works.
 
-- [[The ~let~ Expression in ~insert-buffer~][Insert let]]     Two ~save-excursion~ expression.
+- [[The ~let~ Expression in ~insert-buffer~][Insert let]]                               Two ~save-excursion~ expression.
 
 - [[New Body for ~insert-buffer][New insert-buffer]]
 
@@ -3452,9 +3460,9 @@ Here is a brief summary of the various functions discussed in this chapter.
 - In ~insert-buffer~, the argument to the ~interactive~ declaration
   has two parts, an asterisk, '~*~', and '~bInsert buffer: "~'.
 
-  - [[A Read-only Buffer][Read-only buffer]]         When a buffer cannot be modified.
+  - [[A Read-only Buffer][Read-only buffer]]                            When a buffer cannot be modified.
 
-  - [['~b~' in an Interactive Expression][b for interactive]]     An existing buffer or else its name.
+  - [['~b~' in an Interactive Expression][b for interactive]]           An existing buffer or else its name.
 
 **** A Read-only Buffer
 
@@ -3550,7 +3558,7 @@ Here is a brief summary of the various functions discussed in this chapter.
   buffer (rather than its name), we can write the code like this:
 
   #+begin_src emacs-lisp
-    (if (not (bufferp buffer))                         ; if-part
+    (if (not (bufferp buffer))                          ; if-part
         (setq buffer buffer (get-buffer buffer)))       ; then-part
   #+end_src
 
@@ -3750,7 +3758,7 @@ Here is a brief summary of the various functions discussed in this chapter.
 
   - [[Optional Arguments][Optional Arguments]]
 
-  - [[~beginning-of-buffer~ with an Argument][beginning-of-buffer opt arg]]       Example with optional argument.
+  - [[~beginning-of-buffer~ with an Argument][beginning-of-buffer opt arg]]             Example with optional argument.
 
   - [[][beginning-of-buffer complete]]
 
@@ -4052,7 +4060,6 @@ Here is a brief summary of the various functions discussed in this chapter.
 
   Returns ~t~ if its argument is a buffer; otherwise return ~nil~.
 
-
 * The Advantage of Narrowing
 
 - Narrowing is a feature of Emacs that makes it possible for you to
@@ -4060,11 +4067,11 @@ Here is a brief summary of the various functions discussed in this chapter.
   changing other parts.  Narrowing is normally disabled since it can
   confuse novices.
 
-  - [[The Advantages of Narrowing][Narrowing advantages]]                     The advantages of narrowing.
+  - [[The Advantages of Narrowing][Narrowing advantages]]               The advantages of narrowing.
 
-  - [[The ~save-restriction~ Special Form][save-restriction]]       The ~save-restriction~ special form.
+  - [[The ~save-restriction~ Special Form][save-restriction]]           The ~save-restriction~ special form.
 
-  - [[~what-line~][what-line]]                                The number of the line that point is on.
+  - [[~what-line~][what-line]]                                          The number of the line that point is on.
 
 ** The Advantages of Narrowing
 
@@ -4355,7 +4362,7 @@ Here is a brief summary of the various functions discussed in this chapter.
 
   - [[Build a list][Builds list]]
 
-  - [[Find the Length of a List: ~length~][length]]       How to find the length of a list.
+  - [[Find the Length of a List: ~length~][length]]             How to find the length of a list.
 
 *** Build a list
 
@@ -4526,7 +4533,8 @@ Here is a brief summary of the various functions discussed in this chapter.
   function takes the CAR of the result returned by ~nthcdr~.  It
   returns the Nth element of the list.
 
-- Thus, if it were not defined in C for speed, the definition of ~nth~ would be:
+- Thus, if it were not defined in C for speed, the definition of ~nth~
+  would be:
 
   #+begin_src emacs-lisp
     (defun nth (n list)
@@ -4673,7 +4681,6 @@ Here is a brief summary of the various functions discussed in this chapter.
   cat dog)~.  The CDR of the list is changed from ~(cow sheep goat)~
   to ~(cat dog)~.
 
-
 * Cutting and Storing Text
 
 - Whenever you cut or clip text out of buffer with a /kill/ command in
@@ -4689,19 +4696,19 @@ Here is a brief summary of the various functions discussed in this chapter.
   Emacs source with "clip" and all occurrences o "killed" with
   "clipped").
 
-  - [[Storing Text in a List][Storing Text]]                  Text is stored in a list
+  - [[Storing Text in a List][Storing Text]]                    Text is stored in a list
 
-  - [[~zap-to-char~][zap-to-char]]                   Cutting out text up to character
+  - [[~zap-to-char~][zap-to-char]]                              Cutting out text up to character
 
-  - [[~kill-region~][kill-region]]                   Cutting text out of a region
+  - [[~kill-region~][kill-region]]                              Cutting text out of a region
 
-  - [[~copy-region-as-kill~][copy-to-region-as-kill]]        A definition for copying text
+  - [[~copy-region-as-kill~][copy-to-region-as-kill]]           A definition for copying text
 
-  - [[Digression into C][Digression into C]]             Minor note on C programming language macros
+  - [[Digression into C][Digression into C]]                    Minor note on C programming language macros
 
-  - [[Initializing a Variable with ~defvar~][defvar]]                        How to give a variable an initial value
+  - [[Initializing a Variable with ~defvar~][defvar]]           How to give a variable an initial value
 
-  - [[Review][cons & search-fwd Review]]      How to give a variable an initial value
+  - [[Review][cons & search-fwd Review]]                        How to give a variable an initial value
 
 ** Storing Text in a List
 
@@ -4761,12 +4768,12 @@ Here is a brief summary of the various functions discussed in this chapter.
 
 - Let us look at the interactive ~zap-to-char~ function.
 
-  - [[The complete ~zap-to-char~ Implementation][Complete zap-to-char]]             The complete implementation
-  - [[The ~interactive~ Expression][zap-to-char interactive]]          A three part interactive expression
-  - [[The Body of ~zap-to-char~][zap-to-char body]]                              A short overview
-  - [[The ~search-forward~ Function][search forward]]                How to search for a string
-  - [[The ~progn~ Special Form][prongn]]                                 The ~progn~ special form
-  - [[Summing up ~zap-to-char~][Summing up zap-to-char]]       Using ~point~ and ~search-forward~
+  - [[The complete ~zap-to-char~ Implementation][Complete zap-to-char]]         The complete implementation
+  - [[The ~interactive~ Expression][zap-to-char interactive]]                   A three part interactive expression
+  - [[The Body of ~zap-to-char~][zap-to-char body]]                             A short overview
+  - [[The ~search-forward~ Function][search forward]]                           How to search for a string
+  - [[The ~progn~ Special Form][prongn]]                                        The ~progn~ special form
+  - [[Summing up ~zap-to-char~][Summing up zap-to-char]]                        Using ~point~ and ~search-forward~
 
 *** The complete ~zap-to-char~ Implementation
 
@@ -4998,8 +5005,8 @@ document.  See [[][Arrays]] in The GNU Emacs lisp Reference Manual.)
   when all goes well.  The third argument contains the code that is
   called in the event of an error.
 
-  - [[The Complete ~kill-region~ Definition][Complete kill-region]]          The function definition
-  - [[~condition-case~][condition-case]]                             Dealing with a problem
+  - [[The Complete ~kill-region~ Definition][Complete kill-region]]             The function definition
+  - [[~condition-case~][condition-case]]                                        Dealing with a problem
   - [[Lisp macro][Lisp macro]]
 
 *** The Complete ~kill-region~ Definition
@@ -5228,9 +5235,9 @@ value of ~last-command~ to the previous command.
   hand, if some other command precedes the ~copy-region-as-kill~, the
   function copies the text into a separate entry in the kill ring.
 
-  - [[The complete ~copy-region-as-kill~ function definition][Complete copy-region-as-kill]]    The complete function definition.
+  - [[The complete ~copy-region-as-kill~ function definition][Complete copy-region-as-kill]]            The complete function definition.
 
-  - [[The Body of ~copy-region-as-kill~][copy-region-as-kill body]]    The body of ~copy-region-as-kill~.
+  - [[The Body of ~copy-region-as-kill~][copy-region-as-kill body]]                                     The body of ~copy-region-as-kill~.
 
 *** The complete ~copy-region-as-kill~ function definition
 
@@ -5667,7 +5674,8 @@ value of ~last-command~ to the previous command.
     (setq kill-ring-yank-pointer kill-ring)
   #+end_src
 
-- The ~kill-ring-yank-pointer~ is a global variable that is set to be the ~kill-ring~.
+- The ~kill-ring-yank-pointer~ is a global variable that is set to be
+  the ~kill-ring~.
 
 - Even though the ~kill-ring-yank-pointer~ is called a '~pointer~', it
   is a variable just like the kill ring.  However, the name has been
@@ -5985,7 +5993,8 @@ Here is a brief summary of some recently introduced functions.
 
 - ~cons~
 
-  ~cons~ construct a list by prepending its first argument to its second argument.
+  ~cons~ construct a list by prepending its first argument to its
+  second argument.
 
   For example:
 
@@ -6034,7 +6043,8 @@ Here is a brief summary of some recently introduced functions.
 
 - ~progn~
 
-  Evaluate each argument in sequence and then return the value of the last.
+  Evaluate each argument in sequence and then return the value of the
+  last.
 
   For example:
 
@@ -6082,7 +6092,6 @@ Here is a brief summary of some recently introduced functions.
   from the buffer and throws it away.  You cannot get it back. (This
   is not interactive command.)
 
-
 * How Lists are Implemented.
 
 - In Lisp, atoms are recorded in a straightforward fashion; if the
@@ -6102,7 +6111,7 @@ Here is a brief summary of some recently introduced functions.
 
     - [[List diagrammed][Lists diagrammed]]
 
-    - [[][Symbol as Chest]]             Exploring a powerful metaphor
+    - [[][Symbol as Chest]]                     Exploring a powerful metaphor
 
 ** List diagrammed
 
@@ -6313,7 +6322,6 @@ Here is a brief summary of some recently introduced functions.
 
   #+end_src
 
-
 * Yanking Text Back
 
 - Whenever you cut text out of buffer with a kill command in GNU
@@ -6337,7 +6345,7 @@ Here is a brief summary of some recently introduced functions.
 
   - [[The ~kill-ring-yank-pointer~ Variable][kill-ring-yank-pointer]]        The kill ring is a list
 
-  - [[][yank nthcdr Exercises]]        The ~kill-ring-yank-pointer~ variable
+  - [[][yank nthcdr Exercises]]                                              The ~kill-ring-yank-pointer~ variable
 
 ** Kill Ring Overview
 
@@ -6462,11 +6470,11 @@ Here is a brief summary of some recently introduced functions.
   ~max-specpdl-size~ and ~max-lisp-eval-depth~.  In may ~.emacs~ file,
   I set them to 15 and 30 times their default value.)
 
-  - [[~while~][while]]                 Causing a stretch of code to repeat
+  - [[~while~][while]]                                                  Causing a stretch of code to repeat
 
   - [[Save your time: ~dolist~ and ~dotimes~][dolist dotimes]]
 
-  - [[Recursion][Recursion]]             Causing a function to call itself
+  - [[Recursion][Recursion]]                                            Causing a function to call itself
 
 ** ~while~
 
@@ -6491,17 +6499,17 @@ Here is a brief summary of some recently introduced functions.
       body...)
   #+end_src
 
-  - [[Looping with ~while~][Looping with while]]                  Repeat so long as test returns true
+  - [[Looping with ~while~][Looping with while]]                                Repeat so long as test returns true
 
-  - [[A ~while~ Loop and a List][Leop example]]                 A ~while~ loop that uses a list
+  - [[A ~while~ Loop and a List][Leop example]]                                 A ~while~ loop that uses a list
 
-  - [[An Example: ~print-elements-of-list~][print-element-of-list]]         Uses ~while~, ~car~, ~cdr~
+  - [[An Example: ~print-elements-of-list~][print-element-of-list]]             Uses ~while~, ~car~, ~cdr~
 
-  - [[A Loop with an Incrementing Counter][Incrementing Loop]]                   A loop with an incrementing counter
+  - [[A Loop with an Incrementing Counter][Incrementing Loop]]                  A loop with an incrementing counter
 
   - [[Details of an Incrementing Loop][Incrementing Loop Details]]
 
-  - [[Loop with a Decrementing Counter][Decrementing Loop]]                   Repeat so long as test returns true
+  - [[Loop with a Decrementing Counter][Decrementing Loop]]                     Repeat so long as test returns true
 
 *** Looping with ~while~
 
@@ -6727,11 +6735,11 @@ Here is a brief summary of some recently introduced functions.
 - Note that you need to set the initial value of ~count~; usually it
   is set to 1.
 
-  - [[Example with incrementing counter][Incrementing Example]]           Counting pebbles in a triangle
+  - [[Example with incrementing counter][Incrementing Example]]                   Counting pebbles in a triangle
 
-  - [[The parts of the function definition][Inc Example part]]               The parts of the function definition
+  - [[The parts of the function definition][Inc Example part]]                    The parts of the function definition
 
-  - [[Putting the function definition together][Inc Example altogether]]         Putting the function definition together
+  - [[Putting the function definition together][Inc Example altogether]]          Putting the function definition together
 
 **** Example with incrementing counter
 
@@ -6970,11 +6978,11 @@ Here is a brief summary of some recently introduced functions.
       (setq counter (1- counter)))      ; decrementer
   #+end_src
 
-  - [[Example with decrementing counter][Decrementing Example]]           More pebbles on the bench
+  - [[Example with decrementing counter][Decrementing Example]]                   More pebbles on the bench
 
-  - [[The parts of the function definition][Dec Example parts]]              The parts of the function definition
+  - [[The parts of the function definition][Dec Example parts]]                   The parts of the function definition
 
-  - [[Putting the function definition together][Dec Example altogether]]         Putting the function definition together
+  - [[Putting the function definition together][Dec Example altogether]]          Putting the function definition together
 
 **** Example with decrementing counter
 
@@ -7263,19 +7271,19 @@ Here is a brief summary of some recently introduced functions.
   different arguments will become sufficiently different from the
   first arguments that the final instance will stop.
 
-  - [[Building Robots: Extending the Metaphor][Building Robots]]                       Same model, different serial number ...
+  - [[Building Robots: Extending the Metaphor][Building Robots]]                Same model, different serial number ...
 
-  - [[The Parts of a Recursive Definition][Recursive Definition Parts]]            Walk until you stop ...
+  - [[The Parts of a Recursive Definition][Recursive Definition Parts]]         Walk until you stop ...
 
-  - [[Recursion with a list][Recursion with list]]                   Using a list as the test whether to recurse
+  - [[Recursion with a list][Recursion with list]]                              Using a list as the test whether to recurse
 
   - [[Recursion in Place of a Counter][Recursive triangle function]]
 
   - [[Recursion Example using ~cond~][Recursion with cond]]
 
-  - [[Recursive Patterns][Recursive pattern]]                     Often used templates
+  - [[Recursive Patterns][Recursive pattern]]                                   Often used templates
 
-  - [[Recursion without Deferments][No Deferment]]                          Don't store up work ...
+  - [[Recursion without Deferments][No Deferment]]                              Don't store up work ...
 
   - [[No Deferment Solution][No deferment solution]]
 
@@ -8081,13 +8089,13 @@ Here is a brief summary of some recently introduced functions.
   ~forward-paragraph~ is a complex function that introduces several
   new features.
 
-  - [[The Regular Expression for ~sentence-end~][sentence-end]]                   The regular expression for ~sentence-end~
+  - [[The Regular Expression for ~sentence-end~][sentence-end]]                 The regular expression for ~sentence-end~
 
-  - [[The ~re-search-forward~ Function][re-search-forward]]             Very similar to ~search-forward~
+  - [[The ~re-search-forward~ Function][re-search-forward]]                     Very similar to ~search-forward~
 
-  - [[~forward-sentence~][forward-sentence]]                                 A straightforward example of regexp search
+  - [[~forward-sentence~][forward-sentence]]                                    A straightforward example of regexp search
 
-  - [[~forward-paragraph~: a Goldmine of Function][forward-paragraph]]                                A somewhat complex example
+  - [[~forward-paragraph~: a Goldmine of Function][forward-paragraph]]          A somewhat complex example
 
   - [[Review][Regexp Review]]
 
@@ -8257,8 +8265,8 @@ Here is a brief summary of some recently introduced functions.
   one sentence.  The function is usually bound to the key command ~M-e~.
 
   - [[Complete ~forward-sentence~ function definition][Complete forward-sentence]]
-  - [[The ~while~ loops][fwd-sentence while loops]]             Two ~while~ loops
-  - [[The regular expression search][fwd-sentence re-search]]                      A regular expression search
+  - [[The ~while~ loops][fwd-sentence while loops]]                     Two ~while~ loops
+  - [[The regular expression search][fwd-sentence re-search]]           A regular expression search
 *** Complete ~forward-sentence~ function definition
 
 - Here is the code for ~forward-sentence~:
@@ -8501,9 +8509,9 @@ Here is a brief summary of some recently introduced functions.
   exists, especially when blank lines separate paragraphs.  This is an
   added complication.
 
-  - [[Shortened ~forward-paragraph~ function definition][forward-paragraph in brief]]    Key parts of the function definition
-  - [[The ~let*~ expression][fwd-para let]]                  the ~let*~ expression
-  - [[The forward motion ~wile~ loop][fwd-para while]]                The forward motion ~while~ loop
+  - [[Shortened ~forward-paragraph~ function definition][forward-paragraph in brief]]           Key parts of the function definition
+  - [[The ~let*~ expression][fwd-para let]]                                                     the ~let*~ expression
+  - [[The forward motion ~wile~ loop][fwd-para while]]                                          The forward motion ~while~ loop
 
 *** Shortened ~forward-paragraph~ function definition
 
@@ -8947,9 +8955,9 @@ Here is a brief summary of some recently introduced functions.
 
     - [[Counting words][Why Count Words]]
 
-    - [[The ~count-words-example~ Function][count-words-example]]         Use a regexp, but find a problem
+    - [[The ~count-words-example~ Function][count-words-example]]               Use a regexp, but find a problem
 
-    - [[Count Words Recursively][recursive-count-words]]       Start with case of no words in region
+    - [[Count Words Recursively][recursive-count-words]]                        Start with case of no words in region
 
 ** Counting words
 
@@ -8989,9 +8997,9 @@ Here is a brief summary of some recently introduced functions.
   recursion of to a ~while~ loop.
 
 
-    - [[Designing ~count-words-example~][Design count-words-example]]        The definition using a ~while~ loop
+    - [[Designing ~count-words-example~][Design count-words-example]]           The definition using a ~while~ loop
 
-    - [[The Whitespace Bug In ~count-word-example~][Whitespace Bug]]                     The Whitespace Bug in ~count-words-example~
+    - [[The Whitespace Bug In ~count-word-example~][Whitespace Bug]]            The Whitespace Bug in ~count-words-example~
 
 *** Designing ~count-words-example~
 
@@ -9632,23 +9640,23 @@ Here is a brief summary of some recently introduced functions.
 
   - [[Divide and Conquer][Divide and Conquer]]
 
-  - [[What to count?][Words and Symbols]]                     What to count?
+  - [[What to count?][Words and Symbols]]                                               What to count?
 
-  - [[What constituent a Word or Symbols?][Syntax]]                                What constitutes a word or symbol?
+  - [[What constituent a Word or Symbols?][Syntax]]                                     What constitutes a word or symbol?
 
-  - [[The ~count-words-in-defun~ Function][count-words-in-defun]]                  Very like ~count-words-example~
+  - [[The ~count-words-in-defun~ Function][count-words-in-defun]]                       Very like ~count-words-example~
 
-  - [[Counsel Several ~defuns~ Within a File][Several defun]]                 Counting several defuns in a file
+  - [[Counsel Several ~defuns~ Within a File][Several defun]]                           Counting several defuns in a file
 
-  - [[Find a File][Find a File]]                           Do you want to look at a file?
+  - [[Find a File][Find a File]]                                                        Do you want to look at a file?
 
-  - [[~lengths-list-file~ in Detail][length-list-file]]                      A list of the length of many definitions
+  - [[~lengths-list-file~ in Detail][length-list-file]]                                 A list of the length of many definitions
 
-  - [[Count Words in ~defuns~ in Different Files][Several length]]                Counting in definitions in different files
+  - [[Count Words in ~defuns~ in Different Files][Several length]]                      Counting in definitions in different files
 
-  - [[Recursively Count Words in Different Files][Several files recursively]]             Recursively counting in different files
+  - [[Recursively Count Words in Different Files][Several files recursively]]           Recursively counting in different files
 
-  - [[Prepare the Data for Display in a Graph][Prepare the data]]                      Prepare the data for display in a graph
+  - [[Prepare the Data for Display in a Graph][Prepare the data]]                       Prepare the data for display in a graph
 
 ** Divide and Conquer
 
@@ -10210,9 +10218,9 @@ Here is a brief summary of some recently introduced functions.
 - Working on each of a list of files is repetitious act, so we can use
   either ~while~ loop or recursion.
 
-  - [[Determine the lengths of ~defuns~][lengths-list-many-files]]         Returns a list of the lengths of defuns
+  - [[Determine the lengths of ~defuns~][lengths-list-many-files]]              Returns a list of the lengths of defuns
 
-  - [[The ~append~ function][append]]                  Attach one list to another
+  - [[The ~append~ function][append]]                                           Attach one list to another
 
 *** Determine the lengths of ~defuns~
 
@@ -10406,10 +10414,9 @@ Here is a brief summary of some recently introduced functions.
 
   - [[The Data for Display in Detail][Data for Display in Detail]]
 
-  - [[Sorting Lists][Sorting]]                       Sorting list
-  - [[Making a List of Files][Files List]]                    Making a list of files
+  - [[Sorting Lists][Sorting]]                          Sorting list
+  - [[Making a List of Files][Files List]]              Making a list of files
   - [[][Counting function definitions]]
-
 
 *** The Data for Display in Detail
 
@@ -10560,4 +10567,113 @@ Here is a brief summary of some recently introduced functions.
      t
      ...
      )
+  #+end_src
+
+- To learn about the different attributes, look at the documentation
+  of ~file-attributes~.  Bear in mind that the ~file-attributes~
+  function does not list the filename, so its first elements is
+  ~directory-files-and-attributes~'s second element.)
+
+- We will want our new function, ~files-in-below-directory~, to list
+  the '~.el~' files in the directory it is told to check, and in any
+  directory below that directory.
+
+- This give us a hint on how to construct ~files-in-below-directory~:
+  within a directory, the function should add '~.el~' filename to a
+  list; and if, within a directory, the function comes upon a
+  sub-directory, it should go into that sub-directory and repeat its
+  actions.
+
+- However, we should note that every directory contains a name that
+  refers to itself, called ~.~ ("dot"), and a name that refers to its
+  parent directory, called ~..~ ("dot dot").  (in ~/~, the root
+  directory, ~..~ refers to itself, since ~/~ has no parent.)
+  Clearly, we do not want our ~files-in-below-directory~ function to
+  enter those directories, since they always lead us, directly or
+  indirectly, to the current directory.
+
+- Consequently, our ~files-in-below-directory~ function must do
+  several tasks:
+
+  - Check to see whether it is looking at a filename that ends in
+    '~.el~'; and if so, add its name to a list.
+
+  - Check to see whether it is looking a a filename that is the name
+    of directory: and if so,
+
+        - Check to see whether it is looking at ~.~ or ~..~; and if so
+          skip it.
+
+        - Or else, go into that directory and repeat that process.
+
+- Let's write a function definition to do these tasks.  We will use a
+  ~while~ loop to move from one filename to another within a
+  directory, checking what needs to be done; and we will use a
+  recursive call to repeat the actions on each sub-directory.  The
+  recursive pattern is Accumulate (see [[]Accumulate]]), using
+  ~append~ as the combiner.
+
+  #+begin_src emacs-lisp
+    (defun files-in-below-directory (directory)
+      "List the .el files in DIRECTORY and in its sub-directories/"
+      ;;; Although the function will be used non-interactively,
+      ;;; it will be easier to test if we make it interactive.
+      ;;; The directory will have a name such as
+      ;;; "/usr/local/share/emacs/22.1.1/lisp/"
+
+      (let (el-files-list
+            (current-directory-list
+             (directory-files-and-attributes directory t)))
+        ;; while we are in the current directory
+        (while current-directory-list
+          (cond
+           ;; check to see whether filename ends in '.el'
+           ;; and if so, add its name to a list
+           ((equal ".el" (substring (car (car current-directory-list)) -3))
+            (setq el-files-list
+                  (const (car (car current-directory-list)) el-files-list)))
+           ;; check whether filename is that of a directory
+           (eq t (cdr (car curent-directory-list))))
+          ;; decide whether to skip or recurse
+          (if
+              (equal "."
+                     (substring (car (car current-directory-list)) -1))
+              ;; Then do nothing since filename is that of
+              ;;   current directory or parent, "." or ".."
+              ()
+            ;; else descend into directory and repeat the process
+            (setq el-files-list
+                  (append
+                   (files-in-below-directory
+                    (car (car current-directory-list)))
+                   el-files-list)))
+
+            ;;; move to the next filename in the list; this also
+            ;;; shortens the list so the while loop eventually comes to an end
+          (setq current-directory-list (cdr current-directory-list)))
+    ;;; returns the filenames
+        el-files-list))
+  #+end_src
+
+- The ~files-in-below-directory-files~ function takes one arguments,
+  the name of directory.
+
+- Thus, on my system,
+
+  #+begin_src emacs-lisp
+    (length
+        (files-in-below-directory "/usr/local/share/emacs/2.1.1/lisp/"))
+  #+end_src
+
+- tells me that in a below my Lisp sources directory are 1031 '~.el~'
+  files.
+
+- ~files-in-below-directory~ returns a list in reverse alphabetical
+  order.  An expression to sort the list in alphabetical order looks
+  like this:
+
+  #+begin_src emacs-lisp
+    (sort
+     (files-in-below-directory "/usr/local/share/emacs/2.1.1/lisp/")
+     'string-lessp)
   #+end_src
