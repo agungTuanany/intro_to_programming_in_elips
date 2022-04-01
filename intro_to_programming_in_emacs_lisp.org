@@ -10948,11 +10948,11 @@ Here is a brief summary of some recently introduced functions.
 
 - [[Printing the Columns of a Graph][Columns of a graph]]
 
-- [[][graph-body-print]]                How to print the body of paragraph
+- [[The ~graph-body-print~ Function][graph-body-print]]                                 How to print the body of paragraph
 
-- [[][recursive-graph-body-print]]
+- [[The ~recursive-graph-body-print~ Function][recursive-graph-body-print]]
 
-- [[][Printed Axes]]
+- [[Need for Printed Axes][Printed Axes]]
 
 ** Printing the Columns of a Graph
 
@@ -11288,3 +11288,211 @@ Here is a brief summary of some recently introduced functions.
 - Now, finally, we come to our first actual graph printing function.
   This print the body of a graph, not the labels for the vertical and
   horizontal axes, so we can call this graph ~graph-body-print~.:
+
+** The ~graph-body-print~ Function
+
+- After our preparation in the preceding section, the
+  ~graph-body-print~ function is straightforward.  The function will
+  print column after column of asterisks ans blanks, using the
+  elements of a number' list to specify the number of asterisks in
+  each column.  This is a repetitive pact, which means we can use a
+  decrementing ~while~ loop or recursive function for the job.  In
+  this section, we will write the definition using a ~while~ loop.
+
+- The ~column-of-graph~ function requires the height of the graph as
+  an argument, so we should determine and record that a local
+  variable.
+
+- This lead us to the following template for the ~while~ loop version
+  of this function:
+
+  #+begin_src emacs-lisp
+    (defun graph-body-print (numbers-list)
+      "documentation…"
+      (let ((height  …
+                     …))
+
+
+        (while numbers-list
+          insert-columns-and-reposition-point
+          (setq numbers-list (cdr numbers-list)))))
+  #+end_src
+
+- We need to fill in the slots of the template.
+
+- Clearly, we can use the ~(apply 'max number-list)~ expression to
+  determine the height of the graph.
+
+- The ~whil~ loop will cycle through the ~numbers-list~ one element at
+  a time.  AS it is shortened by the ~(setq numbers-list (cdr
+  numbers-lists))~ expression, the CAR of each instance of the list is
+  the value of the argument for ~column-of-graph~.
+
+- At each cycle of the ~while~ loop, the ~insert-rectangle~ function
+  inserts the list returned by ~column-of-graph~.  Since the
+  ~insert-rectangle~ function move point to the lower right of the
+  inserted rectangle, we need to save the location of point at the
+  time the rectangle is inserted, move back to that position after the
+  rectangle is inserted, and then move horizontally to the next place
+  from which ~insert-rectangle~ is called.
+
+- If the inserted columns are one character wide, as they will be if
+  single blanks and asterisks are used, the repositioning command is
+  simply ~(forward-char 1)~; however, the width of a column may be
+  greater than one.  This mean that the repositioning command should
+  be written ~(forward-char symbol-width)~.  The ~symbol-width~ itself
+  is the length of a ~graph-blank~ and can be found using the
+  expression ~(length graph-blank)~.  The best place to bind the
+  ~symbol-widht~ variable to the value of the width of graph column is
+  the varlist of the ~let~ expression.
+
+- These considerations lead to the following function definition:
+
+  #+begin_src emacs-lisp
+    (defun graph-body-print (numbers-list)
+      "Print a bar graph of the NUMBERS-LIST.
+    The numbers-list consists of the Y-axis values."
+
+    (let ((height (apply 'max numbers-list))
+            (symbol-width (length graph-blank))
+            from-position)
+
+
+        (while numbers-list
+        (setq from-position (point))
+        (insert-rectangle
+        (column-of-graph height (car numbers-list)))
+        (goto-char from-position)
+        (forward-char symbol-width)
+
+        ;; Draw graph column by column.
+        (sit-for 0)
+        (setq numbers-list (cdr numbers-list)))
+
+        ;; Place point for X axis labels.
+        (forward-line height)
+        (insert "\n")
+    ))
+  #+end_src
+
+- The one unexpected expression in this function is the ~(sit-for 0)~
+  expression in the ~while~ loop.  This expression makes the graph
+  printing operation more interesting to watch than it would be
+  otherwise.  The expression causes Emacs to /sit/ or do nothing for a
+  zero length of time and then redraw the screen.  Placed here, it
+  causes Emacs to redraw the screen column by column.  Without it,
+  Emacs would never redraw the screen until the function exits.
+
+- We can test ~graph-body-print~ with a short list of numbers.
+
+  + Install ~graph-symbol~, ~graph-blank~, column-of-graph~, which are
+    in [[][Column of a graph]]. and ~graph-body-print~.
+
+  + Copy the following expression:
+
+    #+begin_src emacs-lisp
+        (graph-body-print '(1 2 3 4 5 6 4 3 5 7 6 5 2 3))
+    #+end_src
+
+  + Type ~M-:~ (~eval-expression~).
+
+  + Yank the graph-body-print~ expression into the minibuffer with
+    ~C-y~ (~yank~).
+
+  + Press ~RET~ to evaluate the ~graph-body-print~ expression.
+
+- Emacs will print a graph like this:
+
+  #+begin_src emacs-lisp
+        *   **
+       **  ****
+      **** ****
+     ********** *
+    *************
+   **************
+  #+end_src
+
+** The ~recursive-graph-body-print~ Function
+
+- The ~graph-body-print~ function may also be written recursively.
+  The recursive solution is divided into two parts: an outside wrapper
+  that use a ~let~ expression to determine the values of several
+  variables that need only be found once, such as the maximum height
+  of the graph, and an inside function that is called recursively to
+  print the graph.
+
+- The wrapper is uncomplicated:
+
+  #+begin_src emacs-lisp
+    (defun recursive-graph-body-print (numbers-list)
+      "Print a bar graph of the NUMBERS-LIST.
+        The numbers-list consists of the Y-axis values."
+
+      (let ((height (apply 'max numbers-list))
+            (symbol-width (length graph-blank))
+            from-position)
+        (recursive-graph-body-print-internal
+         numbers-list
+         height
+         symbol-width)))
+  #+end_src
+
+- The recursive function is a little more difficult.  It has four
+  parts: the do-again-test, the printing-code, the recursive call, and
+  the next-step-expression.  The do-again-test is a ~when~ expression
+  that determines whether the ~number-list~ contains any remaining
+  elements; if it does, the function print one column of the graph
+  using the printing code and calls itself again.  The function calls
+  itself again according to the value produced by the
+  next-step-expression which causes the call to act on a shorter
+  version of the number-list.
+
+  #+begin_src emacs-lisp
+    (defun recursive-graph-body-print-internal (numbers-list height symbol-width)
+      "Print a bar graph.
+    Used within recursive-graph-body-print function."
+
+      (when numbers-list
+        (setq from-position (point))
+        (insert-rectangle
+         (column-of-graph height (car numbers-list)))
+        (goto-char from-position)
+        (forward-char symbol-width)
+        (sit-for 0)             ; Draw graph column by column
+        (recursive-graph-body-print-internal
+         (cdr numbers-list) height symbol-width)))
+  #+end_src
+
+- After installation, this expression can be tested; here is an sample:
+
+  #+begin_src emacs-lisp
+    (recursive-graph-body-print '(3 2 5 6 7 5 3 4 6 4 3 2 1))
+  #+end_src
+
+- Here is what ~recursive-graph-body-print produces:
+
+  #+begin_src emacs-lisp
+       *
+      **   *
+     ****  *
+     **** ***
+   * *********
+   ************
+   *************
+  #+end_src
+
+- Either of these two functions, ~graph-body-print~ or
+  ~recursive-graph-body-print~, create the body of a graph.
+
+** Need for Printed Axes
+
+- A graph needs printed axes, so you can orient yourself.  For a
+  doc-project, it may be reasonable to draw the axes by hand using
+  Emacs's Picture mode; but a graph drawing function may be used more
+  than once.
+
+- For this reason, I have written enhancements to the basic
+  ~print-graph-body~ function that automatically print labels for the
+  horizontal and vertical axes.  Since the label printing functions do
+  not contain much new material, I have placed their description in an
+  appendix.  See [[][A Graph with labeled Axes]].
