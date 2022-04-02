@@ -11496,3 +11496,274 @@ Here is a brief summary of some recently introduced functions.
   horizontal and vertical axes.  Since the label printing functions do
   not contain much new material, I have placed their description in an
   appendix.  See [[][A Graph with labeled Axes]].
+
+
+* Your ~.emacs~ File
+
+- "You don't have to like Emacs to like it"--this seemingly
+  paradoxical statement is the secret of GNU Emacs.  The plain,
+  out-of-the-box Emacs is a generic tool.  Most people who use it
+  customize it to suit themselves.
+
+- GNU Emacs is mostly written in Emacs Lisp; this means that by
+  writing expression in Emacs Lisp you can change or extend Emacs.
+
+  - [[Emacs's Default Configuration][Default Configuration]]
+
+  - [[Site-wide Initialization Files][Site-wide Init]]                        You can write side-wide init files
+
+  - [[Specifying Variables using ~defcustom~][defcustom]]                     Emacs will write code for you
+
+  - [[][Beginning init file]]           How to write a ~.emacs~ init file
+
+  - [[][Text and Auto-fill]]            Automatically wrap lines
+
+  - [[][Mail Aliases]]                  Use abbreviation for email addresses
+
+  - [[][Indent Tabs Mode]]              Don't use tabs with TeX
+
+  - [[][Keybindings]]                   Create some personal keybindings
+
+  - [[][Keymaps]]                       More about key binding
+
+  - [[][Loading Files]]                 Load (i.e., evaluate) files automatically
+
+  - [[][Simple Extension]]              Define a function; bind it to a key
+
+  - [[][X11 Colors]]                    Colors in X.
+
+  - [[][Miscellaneous]]
+
+  - [[][Mode Line]]                     How to customize your mode line
+
+** Emacs's Default Configuration
+
+- There are those who appreciate Emacs's default configuration.  After
+  all, Emacs starts you in C mode when you edit a C file, starts you
+  in Fortran mode when you edit a Fortran file, and starts you in
+  Fundamental mode when you edit an unadorned file.  This makes sense,
+  if you do not know who is going to use Emacs.  Who knows what a
+  person hopes to do with an unadorned file? Fundamental mode is the
+  right default for such a file, just as C mode is the right default
+  for editing C code.  (Enough programming languages have syntaxes
+  that enable them to share or nearly share features, so C mode is now
+  provided by CC mode, the C Collection.)
+
+- But when you do know who is going to use Emacs--you, yourself--then
+  it makes sense to customize Emacs.
+
+- For example, I seldom want Fundamental mode when I edit an otherwise
+  undistinguished file; I want Text mode.  This is why I customize
+  Emacs: so it suits me.
+
+- You can customize and extend Emacs Lisp code.  You can write this
+  code yourself; or you can use Emacs's ~customize~ feature to write
+  the code for you.  You can combine your own expressions and
+  auto-written Customize expression in your ~.emacs~ file.
+
+- A ~~/.emacs~ file contains and extend Emacs by writing or adapting a
+  ~~/.emacs~ file.  This is your personal initialization file; its
+  contents, written in Emacs Lisp, tell Emacs what to do.
+
+- (You may also add ~.el~ to ~~/.emacs~ and call it a ~~/.emacs.el~
+  file.  In the past, you were forbidden to type the extra keystrokes
+  that the name ~~/.emacs.el~ requires, but now you may.  The new
+  format is consistent with the Emacs Lisp file naming convention; the
+  old format saves typing.)
+
+- A ~~/.emacs~ file contains Emacs Lisp code.  You can write this code
+  yourself; or you can use Emacs's ~customize~ feature to write the
+  code for you.  You can combine your own expression and auto-written
+  Customize expression in your ~.emacs~ file.
+
+- (I myself prefer to write my own expressions, except for those,
+  particularly fonts, that I find easier to manipulate using the
+  ~customize~ command.  I combine the two methods.)
+
+- Most of this chapter is about writing expressions yourself.  It
+  describes a simple ~.emacs~ file; for more information, see ~[[][The
+  Init File]] In the GNU Emacs Manual, and the ~[[][The Init File]] in
+  the GNU Emacs Lisp Reference Manual]].
+
+** Site-wide Initialization Files
+
+- In addition to your personal initialization file.  Emacs
+  automatically loads various site-wide initialization files, if they
+  exist.  These have the same form as your ~.emacs~ file, but are
+  loaded by everyone.
+
+- Two site-wide initialization files, ~site-load,el~ and
+  ~site-init.el~, are loaded into Emacs and then dumped if a dumped
+  version of Emacs is created, as is most common.  (Dumped copies of
+  Emacs load more quickly.  However, once a file is loaded and dumped,
+  a change to it does not lead to a change in Emacs unless you load it
+  yourself or re-dump Emacs.  See [[][Building Emacs]] in the GNU
+  Emacs Lisp Reference Manual, and the ~INSTALL~ file.)
+
+- Three other site-wide initialization files are loaded automatically
+  each time you start Emacs, if they exist.  These are
+  ~site-start.el~, which is loaded before your ~.emacs~ file, and
+  ~default.el~ and the terminal type file, which are both loaded
+  /after/ your ~.emacs~ file.
+
+- Setting and definition in your ~.emacs~ file will overwrite
+  conflicting setting and definitions in a ~site-start.el~ file, if it
+  exists; but the settings and definitions in a ~default.el~ or
+  terminal type file will overwrite those in your ~.emacs~ file.  You
+  can prevent interference from a terminal type file by setting
+  ~term-file-prefix~ to ~nil~.  See [[][A Simple Extension]].)
+
+- The ~INSTALL~ file that comes in the distribution contains
+  description of the ~site-init.el~ and ~site-load.el~ files.
+
+- The ~loadup.el~, ~startup.el~, and ~loaddefs.el~ files control
+  loading.  These files are in the ~lisp~ directory of the Emacs
+  distribution and are worth perusing.
+
+- The ~loaddefs.el~ file contains a good many suggestions as to what
+  to put into your own ~.emacs~ file, or into a site-wide
+  initialization file.
+
+** Specifying Variables using ~defcustom~
+
+- You can specify variables using ~defcustom~ so that you and others
+  can then use Emacs's ~cutomize~ feature to set their values.  (You
+  cannot use ~customize~ to write function definitions; but you can
+  write ~defuns~ in your ~.emacs~ file.  Indeed, you can write any
+  Lisp expression in your ~.emacs~ file.)
+
+- The ~customize~ feature depends on the ~defcustom~ macro.  Although
+  you can use ~devfar~ or ~setq~ for variables that users set, the
+  ~defcustom~ macro is designed for the job.
+
+- You can use your knowledge of ~devfar~ for writing the first three
+  arguments for ~defcustom~ is the name of the variable.  The second
+  argument is the variable's initial value. if any; and this value is
+  set only if the value has not already been set.  The third argument
+  is the documentation.
+
+- The fourth and subsequent arguments to ~defcustom~ specify types and
+  options; these are not featured in ~devfar~.  (These arguments are
+  optional.)
+
+- Each of these arguments consists of a keyword followed by a value.
+  Each keyword starts with the colon character '~:~'.
+
+- For example, the customizable user option variable ~text-mode-hook~
+  looks like this:
+
+  #+begin_src emacs-lisp
+    (defcustom text-mode-hook nil
+      "Normal hook run when entering Text mode and many related mode."
+      :type 'hook
+      : options '(turn-on-auto-fill flyspell-mode)
+      : group 'wp)
+  #+end_src
+
+- The name of the variable is ~text-mode-hook~l it has no default
+  value; and its documentation string tells you what it does.
+
+- The ~:type~ keyword tells Emacs the kind of data to which
+  ~text-mode-hook~ should be set and how to display the value in
+  Customization buffer.
+
+- The ~:options~ keyword specifies a suggested list of values for the
+  variable.  Usually ~:options~ applies to a hook.  The list is only a
+  suggestion; it is not exclusive; a person who sets the variable may
+  set it to other values; the list shown following the ~:options~
+  keyword is intended to offer convenient choices to a user.
+
+- Finally, the ~:group~ keyword tells the Emacs Customization command
+  in which group the variable is located.  This tells where to find
+  it.
+
+- The ~defcustom~ macro recognizes more than a dozen keywords.  For
+  more information, see [[][Writing Customization Definitions]] in The
+  GNU Emacs Lisp Reference Manual.
+
+- Consider ~text-mode-hook~ as an example.
+
+- There are two ways to customize this variable.  You can use the
+  customization command or write the appropriate expression yourself.
+
+- Using the customized command, you can type:
+
+  #+begin_src emacs-lisp
+    M-x customize
+  #+end_src
+
+- and find the group for editing flies of text is called "Text".
+  Enter that group.  Text Mode Hook is the first member.  You can
+  click on its various options, such as ~turn-on-auto-fill~, to set
+  the values, after you click on the button to
+
+  #+begin_src emacs-lsip
+    Save for Future Sessions
+  #+end_src
+
+- Emacs will write an expression into your ~.emacs~ file, it will look
+  like this:
+
+  #+begin_src emacs-lisp
+    (custom-set-variables
+      ;; custom-set-variables was assed by Custom.
+      ;; If you edit it by hand, you could mess it up, so be careful.
+      ;; Your init file should contain onlyone such instance.
+      ;; If there is more than one, they won't work right.
+     '(text-mode-hook '(turn-on-auto-fill text-mode-hook-identify)))
+  #+end_src
+
+- (The ~text-mode-hook-identify~ function tells
+  ~toggle-text-mode-auto-fill~ which buffers are in Text mode.  It
+  comes on automatically.)
+
+- The ~custom-set-variables~ function works somewhat differently than
+  a ~setq~.  While I have learned the differences, I modify the
+  ~custom-set-variabels~ expression in my ~.emacs~ file by hand: I
+  make the changes in what appears to me to be reasonable manner and
+  have not any problems.  Others prefer to use the Customization
+  command and let Emacs do the work for them.
+
+- Another ~custom-set-...~ function is ~custom-set-faces~.  This
+  function sets the various font faces.  Over time, I have set a
+  considerable number of faces, some of time, I re-set them using
+  ~customize:~ other times, I simply edit the ~custom-set-faces~
+  expression in my ~.emacs~ file itself.
+
+- The second way to customize your ~text-mode-hook~ is to set it
+  yourself in your ~.emacs~ file using code that has nothing to do
+  with the ~custom-set-...~ functions.
+
+- When you do this, and later use ~customize~, you will see a message
+  that says.
+
+  #+begin_src emacs-lisp
+    CHANGED outside Customize; operating on it here may be unreliable.
+  #+end_src
+
+- This message is only a warning. If you click on the button to
+
+  #+begin_src emacs-lisp
+    Save for Future Session
+  #+end_src
+
+- Emacs will write a ~custom-set-...~ expression near the end of your
+  ~.emacs~ file that will be evaluated after your hand-written
+  expression.  It will, therefore, overrule your hand-written
+  expression.  No harm will be done.  When you do this, however, be
+  careful to remember which expression is active; if you forget, you
+  may confuse yourself.
+
+- So long as you remember the values are set, you will have no
+  trouble.  In any event, the values are always set in your
+  initialization file, which is usually called ~.emacs~.
+
+- I myself use ~customize~ for hardly anything.  Mostly, I write
+  expression myself.
+
+- Incidentally, to be more complete concerning defines: ~defsubst~
+  defines an inline function.  The syntax is just like that of
+  ~defun~, ~defconst~ defines a symbol as a constant.  The intent is
+  that neither programs nor users ever change a value set by
+  ~defconst~.  (You can change it; the value set is a variable; but
+  please do not.)
