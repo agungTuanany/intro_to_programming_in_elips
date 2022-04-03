@@ -11510,17 +11510,17 @@ Here is a brief summary of some recently introduced functions.
 
   - [[Emacs's Default Configuration][Default Configuration]]
 
-  - [[Site-wide Initialization Files][Site-wide Init]]                        You can write side-wide init files
+  - [[Site-wide Initialization Files][Site-wide Init]]          You can write side-wide init files
 
-  - [[Specifying Variables using ~defcustom~][defcustom]]                     Emacs will write code for you
+  - [[Specifying Variables using ~defcustom~][defcustom]]       Emacs will write code for you
 
-  - [[][Beginning init file]]           How to write a ~.emacs~ init file
+  - [[Beginning a ~.emacs~ file][Beginning init file]]          How to write a ~.emacs~ init file
 
-  - [[][Text and Auto-fill]]            Automatically wrap lines
+  - [[Text and Auto Fill Mode][Text and Auto-fill]]             Automatically wrap lines
 
-  - [[][Mail Aliases]]                  Use abbreviation for email addresses
+  - [[Mail Aliases][Mail Aliases]]                              Use abbreviation for email addresses
 
-  - [[][Indent Tabs Mode]]              Don't use tabs with TeX
+  - [[Indent Tabs Mode][Indent Tabs Mode]]                      Don't use tabs with TeX
 
   - [[][Keybindings]]                   Create some personal keybindings
 
@@ -11767,3 +11767,209 @@ Here is a brief summary of some recently introduced functions.
   that neither programs nor users ever change a value set by
   ~defconst~.  (You can change it; the value set is a variable; but
   please do not.)
+
+** Beginning a ~.emacs~ file
+
+- When you start Emacs, it loads your ~.emacs~file unless you tell it
+  not to by specifying '~-q~' on the command line.  (The ~emacs -q~
+  command gives you a plain, out-of-the-box Emacs.)
+
+- A ~.emacs~ file contains Lisp expressions.  Often, these are no more
+  than expressions to set values; sometimes they are function
+  definitions.
+
+- See [[https://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Init-File][The Init File ~~/.emacs~]] in The GNU Emacs Manual, for a short
+  description of initialization files.
+
+- The first part of the file consists of comments: reminders to
+  myself.  By now, of course, I remember these things, but when I
+  started, I did not.
+
+  #+begin_src emacs-lisp
+    ;;;; Bob's .emacs file
+                                            ; Robert J.  Chassell
+                                            ; 26 September 1985
+  #+end_src
+
+- Look at that date! I started this file a long time ago.  I have been
+  adding to it ever since.
+
+  #+begin_src emacs-lisp
+                                            ; Each section in this file is introduced by a
+                                            ; line beginning with four semicolons; and each
+                                            ; entry is introduced by a line beginning with
+                                            ; three semicolons.
+  #+end_src
+
+- This describes the usual conventions for comments in Emacs Lisp.
+  Everything on a line that follows a semicolon is a comment.  Two,
+  three, and four semicolons are used as subsection and section
+  markers.  (See [[https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#Comments][Comments]] in The GNU Emacs Lisp Manual, for more about
+  comments.)
+
+  #+begin_src emacs-lisp
+    ;;;; The Help Key
+                                            ; Control-h is the help key;
+                                            ; after typing control-h, type a letter to
+                                            ; indicate the subject about which you want help.
+                                            ; For an explanation of the help facility,
+                                            ; type control-h two times in a row.
+  #+end_src
+
+- Just remember: type ~C-h~ two times for help.
+
+  #+begin_src emacs-lisp
+                                            ; To find out about any mode, typr control-h m
+                                            ; while in that mode.  For example, to find out
+                                            ; about mail mode, enetr mail mode and then type
+                                            ; control-h m.
+  #+end_src
+
+- "Mode help", as I call this,is very helpful.  Usually, it tells you
+  all you need to know.
+
+- Of course, you don't need to include comments like these in your
+  ~.emacs~ file.  I included them in mine because I kept forgetting
+  about Mode help or the conventions for comments--but I was able to
+  remember to look here to remind myself.
+
+** Text and Auto Fill Mode
+
+- Now we come to the part that turns on Text mode and Auto fill mode.
+
+  #+begin_src emacs-lisp
+    ;;;  Text mode and Auto Fill mode
+    ;; The next two line put Emacs into Text mode
+    ;; and Auto Fill mode, and are for writers who
+    ;; want to start writing prose rather than code.
+    (setq-default major-mode 'text-mode)
+    (add-hook 'text-mode-hook 'turn-on-auto-fill)
+  #+end_src
+
+- Here is the first part of this ~.emacs~ file that does something
+  besides remind a forgetful human!
+
+- The first of the two lines in parentheses tells Emacs to turn on
+  Text mode when you find a file, /unless/ that file should go into
+  some other mode, such as C mode.
+
+- When Emacs reads a file, it looks at the extension to the file name,
+  if any.  (The extension is the part that comes after a '~.~'.) If
+  the file ends with a '~.c~', or '~.h~' extension then Emacs turns on
+  C mode.  Also, Emacs looks at first nonblank line of the file; if
+  the line says ~'-*- C -*-~', Emacs turns on C mode.  Emacs possesses
+  a list of extensions ans specifications that it uses automatically.
+  In addition, Emacs looks near the last page for a per-buffer, local
+  variables list, if any.
+
+- Now, back to the ~.emacs~ file.
+
+- Here is the line again; how does it work?
+
+  #+begin_src emacs-lisp
+    (setq major-mode 'text-mode)
+  #+end_src
+
+- This line is short, but complete Emacs Lisp expression.
+
+- We are already familiar with ~setq~.  It sets the following
+  variable, ~major-mode~, to the subsequent value, which is
+  ~text-mode~.  The single-quote before ~text-mode~ tells Emacs to
+  deal directly with the ~text-mode~ symbol, no with whatever it might
+  stand for.  See [[Setting the Value of a Variable]], for reminder of
+  how ~setq~ works.  The main point is that there is no difference
+  between the procedure you use to set a value in your ~.emacs~ file
+  and the procedure you use anywhere else in Emacs.
+
+- Here is the next line:
+
+  #+begin_src emacs-lisp
+    (add-hook 'text-mode-hook 'turn-on-auto-fill)
+  #+end_src
+
+- In this line. the ~add-hook~ command adds ~turn-on-auto-fill~ to the
+  variable.
+
+- ~turn-on-auto-fill~ is the name of a program, that you guessed it!,
+  turns on Auto Fill mode.
+
+- Every time Emacs turns on Text mode, Emacs runs the commands hooked
+  onto Text mode.  So every time Emacs turns on Text mode, Emacs also
+  turns on Auto Fill mode.
+
+- In brief, the first line causes Emacs to enter Text mode when you
+  edit a file, unless the file name extension, a first non-blank line,
+  or local variables to tell Emacs otherwise.
+
+- Text mode among other actions, sets the syntax table to work
+  conveniently for writers.  In Text Mode, Emacs considers an
+  apostrophe as part of a word like a letter; but Emacs does not
+  consider a period or a space as part of a word.  Thus, ~M-f~ moves
+  you over '~it's~'.  On the other hand, in C mode, ~M-f~ stops just
+  after the '~t~' of '~it's~'.
+
+- The second line causes Emacs to turn on Auto Fill mode when it turns
+  on Text mode.  In Auto Fill mode, Emacs automatically breaks a line
+  that is too wide and brings the excessively wide part of the line
+  down to the next line.  Emacs breaks lines between words, not within
+  them.
+
+- When Auto Fill mode is turned off, lines continue to the right as
+  you type them.  Depending on how you set the value of
+  ~truncate-lines~, the words you type either disappear off the right
+  side of screen, or else shown, in a rather ugly and unreadable
+  manner, as a continuation line on the screen.
+
+- In addition, in this part of my ~.emacs~ file, I tell the Emacs fill
+  commands to insert two spaces after a colon:
+
+  #+begin_src emacs-lisp
+    (setq colon-double-space t)
+  #+end_src
+
+** Mail Aliases
+
+  - Here is a ~setq~ that turns on mail aliases, along with more
+    reminders.
+
+    #+begin_src emacs-lisp
+      ;;; Message mode
+      ;; To enter message mode, type 'C-x m'
+      ;; To enter RMAIL (for reading mail),
+      ;; type 'M-x rmail'
+      (setq mail-aliases t)
+    #+end_src
+
+  - This ~setq~ sets the value of the variable ~mail-aliases~ to ~t~.
+    Since ~t~ means true, the line says, in effect, "Yes, use mail
+    aliases."
+
+  - Mail aliases are convenient short names for long email addresses or
+    for list of email addresses.  The file where you keep your aliases
+    is ~~/.mailrc~.  You write an alias like this:
+
+    #+begin_src emacs-lisp
+      alias geo george@foobar.wiz.edu
+    #+end_src
+
+  - When you write a message to George, address it to '~geo~'; the
+    mailer will automatically expand '~geo~' to the full address.
+
+** Indent Tabs Mode
+
+- By default, Emacs inserts tabs in place of multiple spaces when it
+  formats a region.  (For example, you might indent many lines of text
+  all at once with the ~indent-region~ command.)  Tabs look fine on a
+  terminal or with ordinary printing, but they produce badly indented
+  when you use TeX of Texinfo since TeX ignores tabs.
+
+- The following turns off Indent Tabs mode:
+
+  #+begin_src emacs-lisp
+    ;;; Prevent Extraneous Tabs
+    (setq-default indent-tabs-mode nil)
+  #+end_src
+
+- Noe that this line uses ~setq-default~ rather than ~setq~ that we
+  have seen before; ~setq-defaults~ sets value only in buffers that do
+  not have their own local values for the variable.
