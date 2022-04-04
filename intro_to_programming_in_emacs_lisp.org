@@ -11778,7 +11778,9 @@ Here is a brief summary of some recently introduced functions.
   than expressions to set values; sometimes they are function
   definitions.
 
-- See [[https://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Init-File][The Init File ~~/.emacs~]] in The GNU Emacs Manual, for a short
+- See
+  [[https://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Init-File][The
+  Init File ~~/.emacs~]] in The GNU Emacs Manual, for a short
   description of initialization files.
 
 - The first part of the file consists of comments: reminders to
@@ -11973,3 +11975,88 @@ Here is a brief summary of some recently introduced functions.
 - Noe that this line uses ~setq-default~ rather than ~setq~ that we
   have seen before; ~setq-defaults~ sets value only in buffers that do
   not have their own local values for the variable.
+
+** Some Keybindings
+
+- Now for personal keybindings:
+
+  #+bgein_src emacs-lisp
+    ;;; Compare windows
+    (global-set-key "\C-cw" 'compare-windows)
+  #+end_src
+
+- ~compare-windows~ is a nifty command that compares the text in your
+  current window with text in the next window.  It takes the
+  comparison by starting at point in each window, moving over text in
+  each window as far as they match.  I use this command all the time.
+
+- This also shows how to set a key globally, for all modes.
+
+- The command id ~global-set-key~. It is followed by the keybinding.
+  In a ~.emacs~ file, the keybinding is written as shown: ~\C-c~
+  stands for Control-C, which means to press the control key and the
+  ~c~ key at the same time.  The ~w~ means to press the ~w~ key.  The
+  keybinding is surrounded by double quotation marks.  In
+  documentation, you would write this as ~C-c w~, (If you were binding
+  a ~META~ key, such as ~M0-c~, rather than a ~CTRL~ key, you would
+  write ~\M-c~ in your ~.emacs~ file.  See [[][Rebinding Keys in Your
+  Init File]] in the GNU Emacs Manual, for details.)
+
+- The command invoked by the keys is ~compare-windows~.  Note that
+  ~compare-windows~ is preceded by single-quote; otherwise, Emacs
+  would first try to evaluate the symbol to determine its value.
+
+- These three things, the double quotation marks, the backslash before
+  the '~c~', and the single-quote are necessary parts of the
+  keybinding that I tend to forget.  Fortunately, I have come to
+  remember that I should look at my existing ~.emacs~ file, and adapt
+  what is there.
+
+- As for the keybinding itself: ~C-c w~.  This combines the prefix
+  ~C-c~, with a single character, in this case, ~w~.  This set of keys
+  ~C-c~ followed by a single character, is strictly reserved for
+  individuals' own use.  (I call these /own/ keys, since these are for
+  my own use.)  You should always be able to crate such a keybinding
+  for your own use without stomping on someone else's keybinding.  If
+  you ever write an extension to Emacs, please avoid taking of these
+  keys for public key, Create a key like ~C-c C-w~ instead. Otherwise,
+  we will run out of own keys.
+
+- Here is another keybinding, with a comment:
+
+  #+begin_src emacs-lisp
+    ;;; Keybinding for 'occur'
+    ; I use occur a lot, so let's bind it to a key:
+    (global-set-key "\C-co" 'occur)
+  #+end_src
+
+- The ~occur~ commands shows all the lines in the current buffer that
+  contain a match for a regular expression.  When the region is
+  active, ~occur~ restricts matches to such region.  Otherwise it uses
+  the entire buffer.  Matching lines are shown in a buffer called
+  ~*occur*~.  That buffer servers as a menu to jump to occurrences.
+
+- Here is how to unbind a key, so it does not work:
+
+  #+begin_src emacs-lisp
+    ;;; Unbind 'C-x f'
+    (global-unset-key "\C-xf")
+  #+end_src
+
+- There is a reason for this unbinding: I found I inadvertently type
+  ~C-x f~ when I meant to type ~C-x C-f~.  Rather than find a file, as
+  I intended, I accidentally set the width for filled text, almost
+  always to a width I did not want.  Since I hardly ever reset my
+  default width, I simply unbound the key.
+
+- The following rebinds an existing key:
+
+  #+begin_src emacs-lisp
+    ;;; Rebind 'C-x C-b' for 'buffer-menu'
+    (global-set-key "\C-x\C-b" 'buffer-menu)
+  #+end_src
+
+- By default, ~C-x C-b~ runs the ~lift-buffers~ command.  This command
+  list your buffer in /another/ window.  Since I almost always want to
+  do something in that window, I prefer the ~buffer-menu~ command,
+  which not only lists the buffers, but moves point into that window.
