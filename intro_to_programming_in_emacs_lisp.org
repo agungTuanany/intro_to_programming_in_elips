@@ -11510,25 +11510,27 @@ Here is a brief summary of some recently introduced functions.
 
   - [[Emacs's Default Configuration][Default Configuration]]
 
-  - [[Site-wide Initialization Files][Site-wide Init]]          You can write side-wide init files
+  - [[Site-wide Initialization Files][Site-wide Init]]                            You can write side-wide init files
 
-  - [[Specifying Variables using ~defcustom~][defcustom]]       Emacs will write code for you
+  - [[Specifying Variables using ~defcustom~][defcustom]]                         Emacs will write code for you
 
-  - [[Beginning a ~.emacs~ file][Beginning init file]]          How to write a ~.emacs~ init file
+  - [[Beginning a ~.emacs~ file][Beginning init file]]                            How to write a ~.emacs~ init file
 
-  - [[Text and Auto Fill Mode][Text and Auto-fill]]             Automatically wrap lines
+  - [[Text and Auto Fill Mode][Text and Auto-fill]]                               Automatically wrap lines
 
-  - [[Mail Aliases][Mail Aliases]]                              Use abbreviation for email addresses
+  - [[Mail Aliases][Mail Aliases]]                                                Use abbreviation for email addresses
 
-  - [[Indent Tabs Mode][Indent Tabs Mode]]                      Don't use tabs with TeX
+  - [[Indent Tabs Mode][Indent Tabs Mode]]                                        Don't use tabs with TeX
 
-  - [[][Keybindings]]                   Create some personal keybindings
+  - [[Some Keybindings][Keybindings]]                                             Create some personal keybindings
 
-  - [[][Keymaps]]                       More about key binding
+  - [[Keymaps][Keymaps]]                                                          More about key binding
 
-  - [[][Loading Files]]                 Load (i.e., evaluate) files automatically
+  - [[Loading Files][Loading Files]]                                              Load (i.e., evaluate) files automatically
 
-  - [[][Simple Extension]]              Define a function; bind it to a key
+  - [[Autoloading][Autoloading]]                                                  Make functions available
+
+  - [[A Simple Extension: ~line-to-top-of-window~][Simple Extension]]             Define a function; bind it to a key
 
   - [[][X11 Colors]]                    Colors in X.
 
@@ -12060,3 +12062,269 @@ Here is a brief summary of some recently introduced functions.
   list your buffer in /another/ window.  Since I almost always want to
   do something in that window, I prefer the ~buffer-menu~ command,
   which not only lists the buffers, but moves point into that window.
+
+** Keymaps
+
+- Emacs uses /keymaps/ to record which keys call which command.  When
+  you use ~global-set-key~ to set the keybinding for a single command
+  in all parts of Emacs, you are specifying the keybinding in
+  ~current-global-map~.
+
+- Specific modes, such as C mode or Text mode, have their own keymaps;
+  the mode-specific keymaps override the global map that is shared by
+  all buffers.
+
+- The ~global-set-key~ function binds, or rebinds, the global keymap.
+  For example, the following binds the ~C-x C-b~ to the function
+  ~buffer-menu~
+
+  #+begin_src emacs-lisp
+    (globla-set-key "\C-x\C-b 'buffer-menu)
+  #+end_src
+
+- Mode-specific keymaps are bound using the ~define-key~ function,
+  which takes a specific keymap as an argument, as well as the key and
+  the command.  For example, my ~.emacs~ file contains the following
+  expression to bind the ~textinfo-insert-@group~ command to ~C-c C-c g~
+
+  #+begin_src emacs-lisp
+    (defun textinfo-insert-@group ()
+      "Insert the string @group in Textinfo buffer."
+      (interactive)
+      (beginning-of-line)
+      (insert "@group\n"))
+  #+end_src
+
+- (Of course, I could have use Abbrev mode to save typing, rather than
+  write a function to insert word; but I prefer key strokes consistent
+  with other Textinfo mode key bindings.)
+
+- You will see numerous ~define-key~ expression in ~loaddefs.el~ as
+  well as in the various mode libraries, such as ~cc-mode.el~ and
+  ~lisp-mode.el~
+
+- See [[][Customizing Key Bindings]] in the GNU Emacs Manual, and
+  [[][Keymaps]] in The GNU Emacs Lisp Reference Manual, for more
+  information about keymaps.
+
+** Loading Files
+
+- Many people in the GNU Emacs community have written extensions to
+  Emacs.  As time goes by, these extensions are often included in new
+  releases.  For example, the Calendar and Diary packages are now part
+  the standard GNU Emacs, as is Calc.
+
+- You can use a ~load~ command to evaluate a complete file and thereby
+  install all the functions and variables in the file into Emacs, for
+  Example:
+
+  #+begin_src emacs-lisp
+    (load "~/emacs/slowsplit")
+  #+end_src
+
+- This evaluate i.e., loads, the ~slowsplit.el~ file or if it exists,
+  the faster, byte compiled ~slowsplit.lec~ file from the ~emacs~
+  sub-directory of your home directory.  The file contains the
+  function ~split-window-quitely~, which John Robinson wrote in 1989.
+
+- The ~split-window-quitely~ function splits a window with the minimum
+  of redisplay.  I installed it in 1989 because it worked well with
+  the slow 1200 baud terminals I was then using.  Nowadays, I only
+  occasionally come across such as slow connection, but I continue to
+  use the function because I like the way it leaves the bottom half of
+  a buffer in the lower of the new windows and the top half in the
+  upper window.
+
+- To replace the key binding for the default
+  ~split-window-vertically~, you must also unset that key and bind the
+  keys to ~split-window-quitely~, like this:
+
+  #+begin_src emacs-lisp
+    (global-unset-key "\C-x2")
+    (global-set-key "\C-x2" 'split-window-quitely)
+  #+end_src
+
+- If you load many extensions, as I do, then instead of specifying the
+  exact location of the extension file, as shown above, you can
+  specify that directory as part of Emacs's ~load-path~.  Then, when
+  Emacs loads a file, it will search that directory as well as its
+  default list of directories.  (The default list is specified in
+  ~path.h~ when Emacs is built.)
+
+- The following command adds your ~~/emacs~ directory to the existing
+  load path:
+
+  #+begin_src emacs-lisp
+    ;;; Emacs Load Path
+    (setq load-path (cons "~/emacs" load-path))
+  #+end_src
+
+- Incidentally, ~load-library~ is an interactive interface to the
+  ~load~ function.  The complete function looks like this:
+
+  #+begin_src emacs-lisp
+    (defun load-library (library)
+      "Load the Emacs Lisp Library named LIBRARY.
+    This is an interface to the function `load'.  LIBRARY is searched
+    for in `load-path', both with and without `load-suffixes' (as
+    well as ~load-file-rep-suffixes').
+
+    See Info node `(emacs)lisp libraries' for more details.
+    See `load-file' for a different interface to `load'."
+
+      (interactive
+       (list (completing-read "Load library: "
+                              (apply-partially 'locate-file-completion-table
+                                               load-path
+                                               (get-load-suffixes)))))
+      (load-library))
+  #+end_src
+
+- The name of the function, ~load-library~, comes from the use of
+  "library" as conventional synonym for "file".  The source for the
+  ~load-library~ command is in the ~files.el~ library.
+
+- Another interactive command that does a slightly different job is
+  ~load-file~.  See [[][Libraries of Lisp Code for Emacs]] in the GNU
+  Emacs Manual, for information on the distinction between
+  ~load-library~ and this command.
+
+** Autoloading
+
+- Instead of installing a function by loading the file that contains
+  it, or by evaluating the function definition, you can make the
+  function available but not actually install it until it is first
+  called.  This is called /autoloading/.
+
+- When you execute an autoloaded functions, Emacs automatically
+  evaluates the file that contains the definition, and then calls the
+  function.
+
+- Rarely used functions are frequently autoloaded.  the ~loaddefs.el~
+  library contains thousand of autoloaded functions, from ~5x5~ to
+  ~zone~.  Of course, you may come to use a rare function frequently.
+  When you do, you should load that function's file with a ~load~
+  expression in your ~.emacs~ file.
+
+- In my ~.emacs~ file, I load 14 libraries that contain functions that
+  would otherwise be autoloaded.  (Actually, it would have been better
+  to include these files in my dumped Emacs, but I forgot.  See
+  [[][Building Emacs]] in the GNU Emacs Lisp Reference Manual, and the
+  ~INSTALL~ file for more about dumping.)
+
+- You may also want to include autoloaded expressions in your ~.emacs~
+  file.  ~autoload~ is built-in function that takes up to five
+  arguments, the final three of which are optional.  The first
+  argument is the name of the function to be autoloaded; the second is
+  the name of the file to be loaded.  The third argument is
+  documentation for the function, and the fourth tells whether the
+  function can be called interactively.  The fifth argument tells what
+  type of object--~autoload~ can handle a keymap or macro as well as a
+  function (the default is a function).
+
+- Here is a typical example:
+
+  #+begin_src emacs-lisp
+    (autoload 'html-helper-mode
+      "html-helper-mode" "Edit HTML documents" t)
+  #+end_src
+
+- (~html-helper-mode~ is an older alternative to ~html-mode~, which is
+  a standard part of the distribution.)
+
+- This expression autoloads the ~html-helper-mode~ function.  It takes
+  it from the ~html-helper-mode.el~ file (or from the byte compiled
+  version ~html-helper-mode.elc~, if that exists.)  The file must be
+  located in a directory specified by ~load-path~.  The documentation
+  says that this is a mode to help you edit documents written in Hyper
+  Text Markup Language.  You can call this mode interactively by
+  typing ~M-x html-helper-mode~.  (You need to duplicate the
+  function's regular documentation in the autoload expression because
+  the regular function is not yet loaded, so its documentation is not
+  available.)
+
+- See [[][Autoloads]] in The GNU Emacs Lisp Reference Manual, for more
+  information.
+
+** A Simple Extension: ~line-to-top-of-window~
+
+- Here is a simple extension to Emacs that moves the line point is on
+  to the top of the window.  I use this all the time, to make text
+  easier to read.
+
+- You can put the following into a separate file and then load it from
+  your ~.emacs~ file, or you can include it with your ~.emacs~ file.
+
+- Here is the definition:
+
+  #+begin_src emacs-lisp
+    ;;; Line to top of window;
+    ;;; replace three keystroke sequence C-u O C-l
+    (defun line-to-top-of-windoe ()
+      "Move the line point is on top of window."
+      (interactive)
+      (recenter 0))
+  #+end_src
+
+- Now for the keybinding.
+
+- Nowadays, function keys as well as mouse button events and non-ASCII
+  characters are written within square brackets, without quotation
+  marks.  (In Emacs version 18 and before, you had to write different
+  function key binding for each different make of terminal.)
+
+- I bind ~line-to-top-of-window~ to my ~F6~ function key like this:
+
+  #+begin_src emacs-lisp
+    (global-set-key [f6] 'line-to-top-of-window)
+  #+end_src
+
+- For more information, see [[][Rebinding Keys in Your Init File]] in
+  The GNU Emacs Manual.
+
+- If you run two version of GNU Emacs, such as version 22 and 23, and
+  use one ~.emacs~ file, you can select which code to evaluate with
+  the following conditional:
+
+  #+begin_src emacs-lisp
+    (cond
+     ((= 22 emacs-major-version)
+      ;; evaluate version 22 code
+      ( ... ))
+
+     ((= 23 emacs-major-version)
+      ;; evalaute version 23 code
+      ( ... )))
+  #+end_src
+
+- For example, recent versions blink their cursor by default.  I hate
+  such blinking, as well as other features, so I placed the following
+  in my ~.emacs~ file.
+
+  #+begin_src emacs-lisp
+    (when (>= emacs-major-version 21)
+      (blink-cursor-mode 0)
+      ;; Insert newline when you press 'C-n' (next-line)
+      ;; at the end of the buffer.
+      (setq next-line-add-newline t)
+
+      ;; Turn on image viewing
+      (auto-image-file-mode t)
+
+      ;; Turn on menu bar (this bar has text)
+      ;; (use numeric argument to turn on)
+      (menu-bar-mode 1)
+
+      ;; Turn off tool bar (this bar has icons)
+      ;; (Use nuemric argument to turn on)
+      (tool-bar-mode nil)
+
+      ;; Turn off tooltip mode for tool bar
+      ;; (This mode causes icon explanation to pop up)
+      ;; (Use numeric argument to turn on)
+      (tooltip-mode nil)
+
+      ;; Of tooltips turned on, make tips appear promptly
+      (setq tooltip-dela 0.1)  ; default is 0.7 second
+      )
+  #+end_src
