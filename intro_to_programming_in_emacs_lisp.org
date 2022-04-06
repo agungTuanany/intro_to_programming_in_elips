@@ -11532,9 +11532,9 @@ Here is a brief summary of some recently introduced functions.
 
   - [[A Simple Extension: ~line-to-top-of-window~][Simple Extension]]             Define a function; bind it to a key
 
-  - [[][X11 Colors]]                    Colors in X.
+  - [[X11 Colors][X11 Colors]]                    Colors in X.
 
-  - [[][Miscellaneous]]
+  - [[Miscellaneous Setting for a ~.emacs~ File][Miscellaneous]]
 
   - [[][Mode Line]]                     How to customize your mode line
 
@@ -12328,3 +12328,105 @@ Here is a brief summary of some recently introduced functions.
       (setq tooltip-dela 0.1)  ; default is 0.7 second
       )
   #+end_src
+
+** X11 Colors
+
+- You can specify colors when you use Emacs with the MIT X Windowing
+  system.
+
+- I dislike the default colors and specific my own.
+
+- Here are the expression in my ~.emacs~ file that set values:
+
+  #+begin_src emacs-lisp
+    ;; Sert cursor color
+    (set-cursor-color "white")
+
+    ;; Set mouse color
+    (set-mouse-color "white")
+
+    ;; Set foreground and backgroud
+    (set-foreground-color "white")
+    (set-background-color "darkblue")
+
+    ;; Set highlight colors for isearch and drag
+    (set-face-foreground 'highlight "white")
+    (set-face-background 'highlight "blue")
+
+    (set-face-foreground 'region "cyan")
+    (set-face-background 'region "blue")
+
+    (set-face-foreground 'secondary-selection "skyblue")
+    (set-face-background 'secondary-selection "darkblue")
+
+    ;; Set calendar highlighting colors
+    (with-eval-after-load 'calendar
+       (set-face-foreground 'calendar
+        (set-face-foreground 'diary "skyblue")
+        (set-face-background 'holiday "slate blue")
+        (set-face-foreground 'holiday "white"))
+  #+end_src
+
+- The various shades of blue soothe my eye and prevent me from seeing
+  the screen flicker.
+
+- Alternatively.  I could have set my specification in various X
+  initialization files.  For example, I could set the foreground,
+  background, cursor, and pointer (i.e., mouse) colors in my
+  ~~/.Xresources~ file like this:
+
+  #+begin_src emacs-lisp
+    Emacs*foreground:   white
+    Emacs*background:   darkblue
+    Emacs*cursorColor:  white
+    Emacs*pointerColor: white
+  #+end_src
+
+- In any event, since it is not part of Emacs, I set the root color of
+  my X window in my ~~/.xinitrc~ file like this:
+
+  #+begin_src emacs-lisp
+    xsetroot -solid Navy -fg white &
+  #+end_src
+
+** Miscellaneous Setting for a ~.emacs~ File
+
+- Here a few miscellaneous settings:
+
+  - Set the shape and colors of the mouse cursor:
+
+  #+begin_src emacs-lisp
+    ;; Cursosr shapes are defined in
+    ;; '/usr/include/X11/cursorfont.h';
+    ;; for example, the 'target' cursor is number 128;
+    ;; the 'top_left_arrow' cursor is number 132.
+
+    (let ((mpointer (x-get-resource "*mpointer"
+                                    "*emacs*mpointer")))
+      ;; If you have not set your mouse pointer
+      ;;    then set it, otherwise leave as is:
+      (if (eq mpointer nil)
+          (setq mpointer "132"))  ; top_left_arrow
+      (setq x-pointer-shape (string-to-number mpointer))
+      (set-mouse-color "white"))
+  #+end_src
+
+  - Or you can set the values of a variety of features in an alist, like
+    this:
+
+    #+begin_src emacs-lisp
+      (setq-default
+       (default-frame-alist
+         '((cursor-color . "white")
+           (mouse-color . "white")
+           (foreground-color . "white")
+           (background-color . "DodgerBlue4")
+           ;; (cursor-typr . bar)
+           (tool-bar-lines . 0)
+           (menu-bar-lines . 1)
+           (width . 80)
+           (height . 58)
+           (font .
+                 "-Misc-Fixed-Medium-R-Normal--20-200-75-75-c-100-ISO8859-1")
+           ))
+    #+end_src
