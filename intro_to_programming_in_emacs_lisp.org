@@ -10946,13 +10946,13 @@ Here is a brief summary of some recently introduced functions.
   are myth.  After scouting the terrain, we will feel more confident
   and enhance the function to label the axes automatically.
 
-- [[Printing the Columns of a Graph][Columns of a graph]]
+  - [[Printing the Columns of a Graph][Columns of a graph]]
 
-- [[The ~graph-body-print~ Function][graph-body-print]]                                 How to print the body of paragraph
+  - [[The ~graph-body-print~ Function][graph-body-print]]                             How to print the body of paragraph
 
-- [[The ~recursive-graph-body-print~ Function][recursive-graph-body-print]]
+  - [[The ~recursive-graph-body-print~ Function][recursive-graph-body-print]]
 
-- [[Need for Printed Axes][Printed Axes]]
+  - [[Need for Printed Axes][Printed Axes]]
 
 ** Printing the Columns of a Graph
 
@@ -11791,18 +11791,18 @@ Here is a brief summary of some recently introduced functions.
 
   #+begin_src emacs-lisp
     ;;;; Bob's .emacs file
-                                            ; Robert J.  Chassell
-                                            ; 26 September 1985
+    ; Robert J.  Chassell
+    ; 26 September 1985
   #+end_src
 
 - Look at that date! I started this file a long time ago.  I have been
   adding to it ever since.
 
   #+begin_src emacs-lisp
-                                            ; Each section in this file is introduced by a
-                                            ; line beginning with four semicolons; and each
-                                            ; entry is introduced by a line beginning with
-                                            ; three semicolons.
+  ; Each section in this file is introduced by a
+  ; line beginning with four semicolons; and each
+  ; entry is introduced by a line beginning with
+  ; three semicolons.
   #+end_src
 
 - This describes the usual conventions for comments in Emacs Lisp.
@@ -11813,20 +11813,20 @@ Here is a brief summary of some recently introduced functions.
 
   #+begin_src emacs-lisp
     ;;;; The Help Key
-                                            ; Control-h is the help key;
-                                            ; after typing control-h, type a letter to
-                                            ; indicate the subject about which you want help.
-                                            ; For an explanation of the help facility,
-                                            ; type control-h two times in a row.
+    ; Control-h is the help key;
+    ; after typing control-h, type a letter to
+    ; indicate the subject about which you want help.
+    ; For an explanation of the help facility,
+    ; type control-h two times in a row.
   #+end_src
 
 - Just remember: type ~C-h~ two times for help.
 
   #+begin_src emacs-lisp
-                                            ; To find out about any mode, typr control-h m
-                                            ; while in that mode.  For example, to find out
-                                            ; about mail mode, enetr mail mode and then type
-                                            ; control-h m.
+  ; To find out about any mode, typr control-h m
+  ; while in that mode.  For example, to find out
+  ; about mail mode, enetr mail mode and then type
+  ; control-h m.
   #+end_src
 
 - "Mode help", as I call this,is very helpful.  Usually, it tells you
@@ -11982,7 +11982,7 @@ Here is a brief summary of some recently introduced functions.
 
 - Now for personal keybindings:
 
-  #+bgein_src emacs-lisp
+  #+begin_src emacs-lisp
     ;;; Compare windows
     (global-set-key "\C-cw" 'compare-windows)
   #+end_src
@@ -12430,3 +12430,98 @@ Here is a brief summary of some recently introduced functions.
                  "-Misc-Fixed-Medium-R-Normal--20-200-75-75-c-100-ISO8859-1")
            ))
     #+end_src
+
+- Convert ~CTRL-h~ into ~DEL~ and ~DEL~ into ~CTRL-h~.  (Some older
+  keyboards needed this, although I have no seen the problem
+  recently.)
+
+  #+begin_src emacs-lisp
+    ;; Translate 'C-h' to <DEL>.
+    ; (keyboard-translate ?\C-h ?\C-?)
+
+    ;; Translate <DEL> to 'C-h'
+    (keyboard-translate ?\C-? ?\C-h)
+  #+end_src
+
+- Turn off a blinking cursor!
+
+  #+begin_src emacs-lisp
+    (if (fboundp 'blink-cursor-command)
+        (blink-cursor-mode -1))
+  #+end_src
+
+- or start GNU Emacs with the command ~emacs -nbc~
+
+- When using ~grep~
+
+  - '~-i~' Ignore case distinctions
+  - '~-n~' Prefix each line of output with line number
+  - '~-H~' Print filename for each match
+  - '~-e~' Protect patterns beginning with a hyphen character, '~-~'
+
+  #+begin_src emacs-lisp
+    (setq grep-command "grep -i -nH -e ")
+  #+end_src
+
+- Find an existing buffer, even if it has a different name
+  This avoid problems with symbolic links.
+
+  #+begin_src emacs-lisp
+    (setq find-file-existing-other-name t)
+  #+end_src
+
+- Set your language environment and default input method
+
+  #+begin_src emacs-lisp
+    (set-language-environment "latin-1")
+    ;; Remember you can enable or disable multilangual text input
+    ;; with the toggle-input-method' (C-\) command
+    (setq default-input-method "latin-1-prefix")
+  #+end_src
+
+- If you want to write with Chinese GB characters, set this instead:
+
+  #+begin_src emacs-lisp
+    (set-language-environment "Chinese-GB")
+    (setq default-input-method "chinese-tonepy")
+  #+end_src
+
+*** Fixing Unpleasant Key Bindings
+
+- some systems bind keys unpleasantly.  Sometimes, for example, the
+  ~CTR~ key appear in an awkward spot rather than at the far left the
+  home row.
+
+- Usually, when people fix these sort of keybindings, they do not
+  change their ~~/.emacs~ file.  Instead, they bind the proper keys on
+  their consoles with the ~loadkeys~ or ~install-keymap~ commands in
+  their boot script and then include ~xmodmap~ commands in their
+  ~.xinitrc~ or ~.Xsession~ file for X windows.
+
+- For boot script:
+
+  #+begin_src shell
+    loadkeys /usr/share/keymaps/i386/qwerty/emacs2.kmap.gz
+    or
+    install-keymap emacs3
+  #+end_src
+
+- For a ~.xinitrc~ or ~.Xsession~ file when the ~Caps Lock~ key is at
+  the far left of the home row:
+
+  #+begin_src shell
+    # Bind the key labeled 'Caps Lock' to 'Control'
+    # (Such as broken user interface suggests that keyboard manufactures
+    # think that computers are typewriter from 1885.)
+
+    xmodmap -e "celar Lock"
+    xmodmap -e "add Control = Caps_Lock"
+  #+end_src
+
+- In a ~.xinitrc~ or ~.Xsession~ file to convert an ~ALT~ key to a
+  ~META~ key:
+
+  #+begin_src shell
+    # Some ill designed keyboards have a key labeled ALT and no Meta
+    xmodmap -e "keysysm Alt_L = Meta_L Alt_L"
+  #+end_src
