@@ -11510,33 +11510,33 @@ Here is a brief summary of some recently introduced functions.
 
   - [[Emacs's Default Configuration][Default Configuration]]
 
-  - [[Site-wide Initialization Files][Site-wide Init]]                            You can write side-wide init files
+  - [[Site-wide Initialization Files][Site-wide Init]]                          You can write side-wide init files
 
-  - [[Specifying Variables using ~defcustom~][defcustom]]                         Emacs will write code for you
+  - [[Specifying Variables using ~defcustom~][defcustom]]                       Emacs will write code for you
 
-  - [[Beginning a ~.emacs~ file][Beginning init file]]                            How to write a ~.emacs~ init file
+  - [[Beginning a ~.emacs~ file][Beginning init file]]                          How to write a ~.emacs~ init file
 
-  - [[Text and Auto Fill Mode][Text and Auto-fill]]                               Automatically wrap lines
+  - [[Text and Auto Fill Mode][Text and Auto-fill]]                             Automatically wrap lines
 
-  - [[Mail Aliases][Mail Aliases]]                                                Use abbreviation for email addresses
+  - [[Mail Aliases][Mail Aliases]]                                              Use abbreviation for email addresses
 
-  - [[Indent Tabs Mode][Indent Tabs Mode]]                                        Don't use tabs with TeX
+  - [[Indent Tabs Mode][Indent Tabs Mode]]                                      Don't use tabs with TeX
 
-  - [[Some Keybindings][Keybindings]]                                             Create some personal keybindings
+  - [[Some Keybindings][Keybindings]]                                           Create some personal keybindings
 
-  - [[Keymaps][Keymaps]]                                                          More about key binding
+  - [[Keymaps][Keymaps]]                                                        More about key binding
 
-  - [[Loading Files][Loading Files]]                                              Load (i.e., evaluate) files automatically
+  - [[Loading Files][Loading Files]]                                            Load (i.e., evaluate) files automatically
 
-  - [[Autoloading][Autoloading]]                                                  Make functions available
+  - [[Autoloading][Autoloading]]                                                Make functions available
 
-  - [[A Simple Extension: ~line-to-top-of-window~][Simple Extension]]             Define a function; bind it to a key
+  - [[A Simple Extension: ~line-to-top-of-window~][Simple Extension]]           Define a function; bind it to a key
 
-  - [[X11 Colors][X11 Colors]]                    Colors in X.
+  - [[X11 Colors][X11 Colors]]                                                  Colors in X.
 
   - [[Miscellaneous Setting for a ~.emacs~ File][Miscellaneous]]
 
-  - [[][Mode Line]]                     How to customize your mode line
+  - [[A Modified Mode Line][Mode Line]]                                         How to customize your mode line
 
 ** Emacs's Default Configuration
 
@@ -12525,3 +12525,144 @@ Here is a brief summary of some recently introduced functions.
     # Some ill designed keyboards have a key labeled ALT and no Meta
     xmodmap -e "keysysm Alt_L = Meta_L Alt_L"
   #+end_src
+
+** A Modified Mode Line
+
+- Finally, a feature I really like; a modified mode line.
+
+- When I work over a network, I forget which machine I am using.
+  Also, I tend to lose track of where I am, and which line point is
+  on.
+
+- So I reset m ode  line to look like this:
+
+  #+begin_src emacs-lsip
+    -;-- foo.texi      rattlesnake:/home/bob/    Line 1   (Textinfo fill) Top
+  #+end_src
+
+- I am visiting a file called ~foo.texo~, on my machine ~rattelsnake~
+  in my ~/home/bob~ buffer.  I am on line ~1~, in Textinfo mode, and I
+  am on the top of the buffer.
+
+  #+begin_src emacs-lisp
+    ;; Set a mode line that tells me which machine, which directory,
+    ;; and which line I am on, plus the other customary information.
+    (setq-default mode-line-format
+     (quote
+      (#("-" 0 1
+         (help-echo
+          "mouse-1: select window, mouse-2: delete others ..."))
+       mode-line-mule-info
+       mode-line-modified
+       mode-line-frame-identification
+       "    "
+
+       mode-line-buffer-identification
+       "    "
+       (:eval (substring
+               (system-name) 0 (string-match "\\..+" (system-name))))
+       ":"
+       default-directory
+       #(" " 0 1
+         (help-echo
+          "mouse-1: select window, mouse-2: delete others ..."))
+       (line-number-mode " Line %l ")
+       global-mode-string
+
+       #("   %[(" 0 6
+         (help-echo
+          "mouse-1: select window, mouse-2: delete others ..."))
+       (:eval (format-time-string "%F"))
+       mode-line-process
+       minor-mode-alist
+       #("%n" 0 2 (help-echo "mouse-2: widen" local-map (keymap ...)))
+       ")%] "
+       (-3 . "%P")
+       ;;   "-%-"
+       )))
+    #+end_src
+
+- Here, I redefine the default mode line.  Most of the parts are from
+  the original; but I make a few changes.  I set the /default/ mode
+  line format so as to permit various modes, such as Info, to override
+  it.
+
+- Many elements in the list are self-explanatory: ~mode-line-modified~
+  is a variable that tells whether the buffer has been modified,
+  ~mode-name~ tells the name of the mode, and so on.  However, the
+  format looks complicated because of two features we have not
+  discussed.
+
+- The first string in the mode line is a dash or hyphen, '~-~'.  Id
+  the old days, it would have been specified simply as "~-~".  But
+  nowadays, Emacs can add properties to a string, such as highlighting
+  or as in this case, a help feature.  If you place your mouse cursor
+  over the hyphen, some help information appears (By default, you must
+  wait seven-tenths of a second before the information appears.  You
+  can change that timing by changing the value of ~tooltip-delay~.)
+
+- The new strung format has a special syntax:
+
+  #+begin_src emacs-lisp
+    #("-" 0 1 (help-echo "mouse-1: select window, ..."))
+  #+end_src
+
+- The ~# (~ begins a list.  The first element of the list is the
+  string itself, just one '~-~'.  The second and third elements
+  specify the range over which the fourth elements applies.  A range
+  starts /after/ a character, so a zero means the range stars just
+  before the first characters.  The third elements is the property for
+  the range.  It consists of a property list, a property name, in this
+  case, '~help-echo~', followed by a value, in this case, a string.
+  The second, third, and fourth elements of this new string format can
+  be repeated.
+
+- See [[][Text Properties]] in The GNU Emacs Lisp Reference Manual,
+  and see [[][Mode Line Format]] in The GNU Emacs Lisp Reference
+  Manual, for more information.
+
+- ~mode-line-buffer-identification~ displays the current buffer name.
+  It is a list beginning ~(#("%12b" 0 4 ...~.  The ~#(~ begins the
+  list.
+
+- The ~%12b~ displays the current buffer name, using the ~buffer-name~
+  function with which we are familiar: the '~12~ specifies the maximum
+  number of characters that will be displayed.  When a name has fewer
+  characters, whitespace is added to fill out to this number.  (Buffer
+  names can and often should be longer than 12 characters; this length
+  work well in a typical 80 characters column wide window.)
+
+- ~:eval~ says to evaluate the following form and use the result as a
+  string to display.  In this case, the expression displays the first
+  component of the full system name.  The end of the first components
+  is a '~.~' (period), so I use the ~string-match~ function to tell me
+  the length of the first component.  The substring from the zeroth
+  character to that length is the name of the machine.
+
+- This is the expression:
+
+  #+begin_src emacs-lisp
+    (:eval (subtring
+            (system-name) 0 (string-match "\\..+" (system-name))))
+  #+end_src
+
+- '~%[~' and '~%]~' cause a pair of square brackets to appear for each
+  recursive editing level.  '~%n~' says "Narrow" when narrowing is in
+  effect.  '~%P~' tells you the percentage of the buffer that is above
+  the bottom of the window, or "Top". "Bottom", or "All".  ( A lower
+  case '~p~' tell you the percentage above the /top/ of the window.)
+  '~%-~ inserts enough dashes to fill out the line.
+
+- Remember, you don't have to like Emacs to like it--your own Emacs
+  can have different colors, different commands, and different keys
+  than a default Emacs.
+
+- On the other hand, if you want to bring up a plain out-of-the-box
+  Emacs, with no customization, type:
+
+  #+begin_src shell
+    emacs -q
+  #+end_src
+
+- This will start an Emacs that does /not/ load your ~~/.emacs~
+  initialization file.  A plain, default Emacs.  Nothing more.
