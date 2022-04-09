@@ -12666,3 +12666,217 @@ Here is a brief summary of some recently introduced functions.
 
 - This will start an Emacs that does /not/ load your ~~/.emacs~
   initialization file.  A plain, default Emacs.  Nothing more.
+
+
+* Debugging
+
+- GNU Emacs has two debugger, ~debug~ and ~edebug~.  The first is
+  built into the internals of Emacs and is always with you; the second
+  requires that you instrument a function before you can use it.
+
+- Both debuggers are described extensively in [[][Debugging Lisp
+  Programs]] in the GNU Emacs Lisp Reference Manual.  In this chapter,
+  I will walk through a short example of each.
+
+  - [[~debug~][debug]]                          How to use the built-in debugger
+  - [[~debug-on-entry~][debug-on-entry]]        How to use the built-in debugger
+  - [[][debug-on-quit]          Start debugging when you quit with ~c-g~
+  - [[][edebug]                 How to use Edebug, a source level debugger.
+
+** ~debug~
+- Suppose you have written a function definition that is intended to
+  return the sum of the numbers I through a given number.  (This is
+  the ~triangle~ function discussed earlier.  See [[]Example with
+  Decrementing Counter]], for a discussion.)
+
+- However, your function definition has a bug.  You have mistyped
+  '~1=~' for '~1-~'.  Here is the broken definition:
+
+  #+begin_src emacs-lisp
+    (defun triangle-bugged (number)
+      "Return sum of numbers 1 through NUMBER inclusive."
+      (let ((total 0))
+        (while (> number 0)
+          (setq total (+ total number))
+          (setq number (1= number)))              ;; Error here
+        total))
+  #+end_src
+
+- If you are reading this in Info, you can evaluate this definition in
+  the normal fashion.  You will see ~triangle-bugged~ appear in the
+  echo area.
+
+- Now evaluate the ~triangle-bugged~ function with an argument of 4:
+
+  #+begin_src emacs-lisp
+    (triangle-bugged 4)
+  #+end_src
+
+- In a recent GNU Emacs, you will create and enter a ~*Backtrace*~
+  buffer that says:
+
+  #+begin_src emacs-lisp
+    * ---------- Buffer: *Backtrace* ----------
+    Debugger entered--Lisp error: (void-function 1=)
+     (1= number)
+     (setq number (1= number))
+     (while (> number 0) (setq total (+ total number)) (setq number (1= number)))
+     (let ((total 0)) (while (> number 0) (setq total (+ total number)) (setq number (1= number))) total)
+     triangle-bugged(4)
+     eval((triangle-bugged 4) nil)
+     elisp--eval-last-sexp(nil)
+     eval-last-sexp(nil)
+     funcall-interactively(eval-last-sexp nil)
+     call-interactively(eval-last-sexp nil nil)
+     command-execute(eval-last-sexp)
+    * ---------- Buffer: *Backtrace* ----------
+  #+end_src
+
+- (I have reformatted this example slightly; the debugger does not
+  fold long lines.  As usual, you can quit the debugger by typing ~q~
+  in the ~*Bakctrace*~ buffer.)
+
+- In practice, for a bug as simple as this, the Lisp error line will
+  tell you what you need to know to correct the definition.  The
+  function ~1=~ is void.
+
+- However, suppose you are not quite certain what is going on? You can
+  read the complete backtrace.
+
+- In this case, you need to run a recent GNU Emacs, which
+  automatically starts the debugger that puts you in the ~*Backtrace*~
+  buffer; or else, you need to start the debugger manually as
+  described below.
+
+- Read the ~*Backtrace*~ buffer from the bottom up; it tells you what
+  Emacs did that led the error.  Emacs made an interactive call to
+  ~C-x C-e~ (~eval-last-sexp~), which led to the evaluation of the
+  ~triangle-bugged~ expression.  Each line above tells you what the
+  Lisp interpreter evaluated next.
+
+- The third line from the top of the buffer is
+
+  #+begin_src emacs-lisp
+    (setq number (1= number))
+  #+end_src
+
+- Emacs tried to evaluate this expression; in order to do so, it tried
+  to evaluate the inner expression shown on the second line from the
+  top:
+
+  #+begin_src emacs-lisp
+    (1= number)
+  #+end_src
+
+- This is where the error occurred; as the top line says:
+
+  #+begin_src emacs-lisp
+    Debugger entered--Lisp error: (void function 1=)
+  #+end_src
+
+** ~debug-on-entry~
+
+- A recent GNU Emacs starts the debugger automatically when your
+  function has an error.
+
+- Incidentally, you can start the debugger manually for all version of
+  Emacs; the advantage is that the debugger runs even if you do not
+  have a bug in your code. Sometimes your code will be free of bugs!.
+
+- You can enter the debugger when you call the function by calling
+  ~debug-on-entry~
+
+- Type:
+
+  #+begin_src emacs-lisp
+    M-x debug-on-entry RET triangle-bugged RET
+  #+end_src
+
+- Now, evaluate the following:
+
+  #+begin_src emacs-lisp
+    (triangle-bugged 5)
+  #+end_src
+
+- all versions of Emacs will create a ~*Backtrace*~ buffer and tell
+  you that it is beginning to evaluate the ~triangle-bugged~ function:
+
+  #+begin_src emacs-lisp
+    * ---------- Buffer: *Backtrace* ----------
+    Debugger entered--entering a function:
+    * triangle-bugged(5)
+      eval((triangle-bugged 5) nil)
+      elisp--eval-last-sexp(nil)
+      eval-last-sexp(nil)
+      funcall-interactively(eval-last-sexp nil)
+      call-interactively(eval-last-sexp nil nil)
+      command-execute(eval-last-sexp)
+    * ---------- Buffer: *Backtrace* ----------
+  #+end_src
+
+- In the ~*Backtrace*~ buffer, type ~d~. Emacs will evaluate the first
+  expression in ~triangle-bugged~; the buffer will look like this:
+
+  #+begin_src emacs-lisp
+    * ---------- Buffer: *Backtrace* ----------
+    Debugger entered--entering a function:
+     * apply((lambda (number) "Return sum of numbers 1 through NUMBER inclusive."
+             (let ((total 0)) (while (> number 0) (setq total ...))
+     * triangle-bugged(5)
+      eval((triangle-bugged 5) nil)
+      elisp--eval-last-sexp(nil)
+      eval-last-sexp(nil)
+      funcall-interactively(eval-last-sexp nil)
+      call-interactively(eval-last-sexp nil nil)
+      command-execute(eval-last-sexp)
+    * ---------- Buffer: *Backtrace* ----------
+  #+end_src
+
+- Now, type ~d~ again, eight times, slowly.  Each time you type ~d~,
+  Emacs will evaluate another expression in the function definition.
+
+- Eventually, the buffer will look like this:
+
+  #+begin_src emacs-lisp
+    * ---------- Buffer: *Backtrace* ----------
+    Debugger entered--returning value: 5
+      +(0 5)
+     * (setq total (+ total number))
+     * (while (> number 0) (setq total (+ total number)) (setq number (1= number)))
+     * (let ((total 0)) (while (> number 0) ... )
+     * (lambda (number) "Return sum of numbers 1 through NUMBER inclusive." (let ((total 0)) ...)
+     * apply((lambda (number) "Return sum of numbers 1 through NUMBER inclusive." (let ((total 0)) ...)
+     * triangle-bugged(5)
+      eval((triangle-bugged 5) nil)
+      elisp--eval-last-sexp(nil)
+      eval-last-sexp(nil)
+      funcall-interactively(eval-last-sexp nil)
+      call-interactively(eval-last-sexp nil nil)
+      command-execute(eval-last-sexp)
+    * ---------- Buffer: *Backtrace* ----------
+  #+end_src
+
+- Finally, after you type ~d~ two more times, Emacs will reach the
+  error, and the top two lines of the ~*Backtrace*~ buffer will look
+  like this:
+
+  #+begin_src emacs-lisp
+    * ---------- Buffer: *Backtrace* ----------
+    Debugger entered--Lisp error: (void-function 1=)
+     * (1= number)
+     * (setq number (1= number))
+     ...
+    * ---------- Buffer: *Backtrace* ----------
+  #+end_src
+
+- By typing ~d~, you were able to step through the function.
+
+- You can quit ~*Backtrace*~ buffer by typing ~q~ in it; this quits
+  the trace; but does not cancel ~debug-on-entry~.
+
+- To cancel the effect of ~debug-on-entry~, call
+  ~cancel-debug-on-entry~ and the name of the function like this:
+
+  #+begin_src emacs-lisp
+    M-x cancel-debug-on-entry RET triangle-bugged RET
+  #+end_src
