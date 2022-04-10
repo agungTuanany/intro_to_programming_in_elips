@@ -12678,10 +12678,10 @@ Here is a brief summary of some recently introduced functions.
   Programs]] in the GNU Emacs Lisp Reference Manual.  In this chapter,
   I will walk through a short example of each.
 
-  - [[~debug~][debug]]                          How to use the built-in debugger
-  - [[~debug-on-entry~][debug-on-entry]]        How to use the built-in debugger
-  - [[][debug-on-quit]          Start debugging when you quit with ~c-g~
-  - [[][edebug]                 How to use Edebug, a source level debugger.
+  - [[~debug~][debug]]                                          How to use the built-in debugger
+  - [[~debug-on-entry~][debug-on-entry]]                        Start debugging when you call a function
+  - [[The ~edebug~ Source Level Debugger][debug-on-quit]]       Start debugging when you quit with ~c-g~
+  - [[The ~edebug~ Source Level Debugger][edebug]]              How to use Edebug, a source level debugger.
 
 ** ~debug~
 - Suppose you have written a function definition that is intended to
@@ -12880,3 +12880,110 @@ Here is a brief summary of some recently introduced functions.
   #+begin_src emacs-lisp
     M-x cancel-debug-on-entry RET triangle-bugged RET
   #+end_src
+
+** The ~edebug~ Source Level Debugger
+
+- Edebug is a source level debugger.  Edebug normally displays the
+  source of code you are debugging, with an arrow at the left that
+  shows which line you are currently executing.
+
+- You can walk through the execution of a function, line by line, or
+  run quickly until reaching a /breakpoint/ where execution stops.
+
+- Edebug is described in [[][Edebug]] in The GNU Emacs Lisp Reference
+  Manual.
+
+- Here is a bugged function definition for ~triangle-recursively~.
+  See [[Recursion in place of a counter]], for a review of it.
+
+  #+begin_src emacs-lisp
+    (defun triangle-recursively-bugged (number)
+      "Return sum of numbers 1 through NUMBER inclusive.
+      Use recursion."
+
+      (if (= number 1)
+          1
+        (+ number
+           (triangle-recursively-bugged
+            (1= number)))))             ;; Error here
+  #+end_src
+
+- Normally, you would install this definition by positioning your
+  cursor after the function's closing parenthesis and typing ~C-x C-e~
+  (~eval-last-sexp~) or else by positioning your cursor within the
+  definition and typing ~C-M-x~ (~eval-defun~).  (By default, the
+  ~eval-defun~ command works only in Emacs Lisp Mode or in Lisp
+  interaction mode.)
+
+- However, to prepare this function definition for Edebug, you must
+  first /instrument/ the code using a different command.  You can do
+  this by positioning your cursor within or just after the definition
+  and typing:
+
+  #+begin_src emacs-lisp
+    M-x edebug-defun RET
+  #+end_src
+
+- This will cause Emacs to load Edebug automatically if it is not
+  loaded, and properly instrument the function.
+
+- After instrumenting the function, place your cursor after the
+  following expression and type ~C-x C-e~ (-eval-last-sexp~):
+
+  #+begin_src emacs-lisp
+    (triangle-recursively-bugged 3)
+  #+end_src
+
+- You will be jumped back to the source code for
+  ~triangle-recursively-bugged~ and the cursor positioned at the
+  beginning of the ~if~ line of the function.  Also, you will see an
+  arrowhead at the left hand side of that line.  The arrowhead marks
+  the line where the function is executing.  (In the following
+  examples, we show the arrowhead '~=>~', in a windowing system, you
+  may see the arrowhead as a solid triangle in the window fringe.
+
+  #+begin_src emacs-lisp
+    =>*(if (= number 1)
+  #+end_src
+
+- In the example, the location of point is displayed as '~*~' (in a
+  printed book, it displayed with a five pointed star.)
+
+- If you now press ~SPC~, point will move to the next expression to be
+  executed; the line will look like this:
+
+  #+begin_src emacs-lisp
+    Result: 3 (#o3, #x3, ?\C-c)
+  #+end_src
+
+- You can continue moving through the code until you reach the line
+  with the error.  Before evaluation, that lines looks like this:
+
+  #+begin_src emacs-lisp
+    =>          *(1= number)))))         ; Error here.
+  #+end_src
+
+- When you press ~SPC~ once again, you will produce an error message
+  that says:
+
+  #+begin_src emacs-lisp
+    Symbol's function definition is void: 1=
+  #+end_src
+
+- This is the bug,
+
+- Press ~q~ to quit Edebug.
+
+- To remove instrumentation from a function definition, simply
+  re-evaluate it with a command that does not instrument it.  For
+  example, you could place your cursor after the definition's closing
+  parenthesis and type ~C-x C-e~.
+
+- Edebug does a great deal more than walk with you through a function.
+  You can set it to it races through on its own, stopping only at an
+  error at specified stopping points; you can cause it to display the
+  changing values of various expressions; you can find out how many
+  times a function is called, and more.
+
+- Edebug is described in ~[[][Edebug]] in The GNU Emacs Lisp Reference
+  Manual.
